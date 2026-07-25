@@ -160,7 +160,10 @@ if {$mode eq "sg13g2"} {
   # a real design wants regardless of the tool complaint.
   hilomap -hicell sg13g2_tiehi L_HI -locell sg13g2_tielo L_LO
 
-  splitnets -ports
+  # No splitnets -ports here. It would split every vector port into single bit ports,
+  # which breaks reuse of the netlist in a Verilog testbench (the bus ports disappear),
+  # and OpenROAD does not need it: DEF has no busses, so the pin placer sees individual
+  # bits either way.
   opt_clean -purge
 
   tee -o $out_dir/${top}_sg13g2_stat.txt stat -liberty $lib -top $top
