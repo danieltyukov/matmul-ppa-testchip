@@ -19,7 +19,6 @@ flow/out/
 # configuration that produced it is committed; the run itself is reproducible output.
 flow/librelane/*/runs/
 *.json.gz
-pdk/
 
 # Editors
 .vscode/
@@ -32,5 +31,7 @@ results/synth/**/*.json.netlist
 results/synth/**/*_yosys.log
 
 # PDK checkout from tools/fetch_pdk.sh: a large third-party artefact with its own
-# release cadence. Fetch it, do not vendor it.
-pdk/
+# release cadence. Fetch it, do not vendor it. Anchored to the repository root on
+# purpose: an unanchored pdk/ also matched results/pdk, which is where the real PDK
+# measurements live, and quietly kept them out of the repository.
+/pdk/

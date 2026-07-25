@@ -118,8 +118,15 @@ def run(cmd: list[str], log: pathlib.Path, cwd: pathlib.Path = REPO,
                               stderr=subprocess.STDOUT).returncode
 
 
+# The netlist does not depend on the stimulus, so the sign sweep synthesises each
+# candidate once and reuses it. Keyed by top, cleared by deleting build/pdk.
+_NETLISTS: dict[str, pathlib.Path] = {}
+
+
 def synthesise(top: str, pdk: pathlib.Path) -> pathlib.Path:
     """Map the candidate onto SG13G2 cells at the timing corner."""
+    if top in _NETLISTS:
+        return _NETLISTS[top]
     netlist = BUILD / f"{top}_sg13g2_netlist.v"
     env = dict(os.environ)
     env.update({
@@ -133,6 +140,7 @@ def synthesise(top: str, pdk: pathlib.Path) -> pathlib.Path:
                BUILD / f"{top}_synth.log", env=env)
     if code != 0 or not netlist.exists():
         raise RuntimeError(f"synthesis failed for {top}; see {BUILD}/{top}_synth.log")
+    _NETLISTS[top] = netlist
     return netlist
 
 
@@ -199,6 +207,28 @@ def simulate(top: str, netlist: pathlib.Path, models: list[pathlib.Path],
             f"{result.stdout[-800:]}"
         )
     return vcd
+
+
+_TIMESCALE_RE = re.compile(r"\$timescale\s+(\d+)\s*([munpf]?s)")
+_UNIT_NS = {"s": 1e9, "ms": 1e6, "us": 1e3, "ns": 1.0, "ps": 1e-3, "fs": 1e-6}
+
+
+def vcd_span_ns(vcd: pathlib.Path) -> float:
+    """How long the dump covers, in nanoseconds.
+
+    Needed to turn average power into energy per tile. Watts are per second and the
+    candidates take different numbers of cycles per tile, so power alone compares a
+    bit-serial engine against a single-cycle one on different terms. Energy per tile is
+    the same question for both.
+    """
+    with vcd.open("rb") as handle:
+        head = handle.read(4096).decode("ascii", "replace")
+        handle.seek(max(0, handle.seek(0, os.SEEK_END) - 8192))
+        tail = handle.read().decode("ascii", "replace")
+    match = _TIMESCALE_RE.search(head)
+    unit = _UNIT_NS[match.group(2)] * int(match.group(1)) if match else 1.0
+    stamps = re.findall(r"^#(\d+)", tail, re.M)
+    return float(stamps[-1]) * unit if stamps else 0.0
 
 
 def sta_script(pdk: pathlib.Path, corner: str, netlist: pathlib.Path, top: str,
@@ -333,6 +363,11 @@ def measure(top: str, pdk: pathlib.Path, tiles: int, neg_fraction: float,
 
     datapath_ns = (FMAX_SEED_NS - datapath["slack_ns"]) if datapath else None
 
+    # Energy, so a candidate that takes eight cycles per tile is charged for all eight.
+    span_ns = vcd_span_ns(vcd)
+    total_w = power["total"]["total_w"]
+    energy_pj = total_w * span_ns * 1e3 / tiles if tiles else None
+
     return {
         "top": top,
         "timing_corner": TIMING_CORNER,
@@ -348,6 +383,9 @@ def measure(top: str, pdk: pathlib.Path, tiles: int, neg_fraction: float,
         "seed_period_ns": FMAX_SEED_NS,
         "seed_slack_ns": slack,
         "power_clock_ns": BENCH_CLOCK_NS,
+        "vcd_span_ns": round(span_ns, 3),
+        "cycles_per_tile": round(span_ns / BENCH_CLOCK_NS / tiles, 3) if tiles else None,
+        "energy_per_tile_pj": round(energy_pj, 3) if energy_pj else None,
         "power": {k: v for k, v in power.items() if k != "annotation"},
         "activity_annotation": {
             "annotated_pins": annotated,
@@ -358,6 +396,66 @@ def measure(top: str, pdk: pathlib.Path, tiles: int, neg_fraction: float,
     }
 
 
+def sweep(args) -> int:
+    """Power against operand sign mix, in watts, for the candidates given.
+
+    The switching-activity proxy in results/activity says sign-magnitude encoding cuts
+    transitions. This is the same experiment with the same operand streams, measured as
+    power on real cells: same netlists, same stimulus, one point per sign mix. Whether
+    the two agree is itself worth knowing, because a transition count weights every net
+    equally and real power does not.
+    """
+    points = []
+    for fraction in args.sweep:
+        for top in args.tops:
+            print(f"{top} at {fraction:.0%} negative operands", flush=True)
+            entry = measure(top, args.pdk, args.tiles, fraction, args.seed)
+            total = entry["power"]["total"]
+            points.append({
+                "top": top,
+                "neg_fraction": fraction,
+                "total_w": total["total_w"],
+                "internal_w": total["internal_w"],
+                "switching_w": total["switching_w"],
+                "leakage_w": total["leakage_w"],
+                "cycles_per_tile": entry["cycles_per_tile"],
+                "energy_per_tile_pj": entry["energy_per_tile_pj"],
+                "coverage": entry["activity_annotation"]["coverage"],
+            })
+            print(f"  -> {total['total_w'] * 1e3:.3f} mW "
+                  f"(switching {total['switching_w'] * 1e3:.3f} mW)", flush=True)
+
+    payload = {
+        "source": "tools/pdk_ppa.py --sweep",
+        "pdk": str(args.pdk),
+        "power_corner": POWER_CORNER,
+        "clock_ns": BENCH_CLOCK_NS,
+        "stimulus": {"tiles": args.tiles, "seed": args.seed},
+        "note": (
+            "Power in watts against the fraction of negative operands, annotated from a "
+            "VCD of each candidate's own SG13G2 netlist under the identical operand "
+            "stream. This is the same experiment as the transition-count sweep in "
+            "results/activity, measured in a physical unit. Dynamic power scales with "
+            "frequency and these are quoted at clock_ns. Glitch power is not captured, "
+            "because the gate level simulation is zero-delay."
+        ),
+        "points": points,
+    }
+    (args.out_dir / "sign_sweep.json").write_text(json.dumps(payload, indent=2) + "\n")
+
+    with (args.out_dir / "sign_sweep.csv").open("w", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["top", "neg_fraction", "internal_w", "switching_w",
+                         "leakage_w", "total_w", "energy_per_tile_pj", "coverage"])
+        for p in points:
+            writer.writerow([p["top"], p["neg_fraction"], f"{p['internal_w']:.9f}",
+                             f"{p['switching_w']:.9f}", f"{p['leakage_w']:.9f}",
+                             f"{p['total_w']:.9f}", p["energy_per_tile_pj"],
+                             p["coverage"]])
+    print(f"\nwrote {args.out_dir / 'sign_sweep.json'} and sign_sweep.csv")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--pdk", type=pathlib.Path, default=PDK_DEFAULT)
@@ -366,6 +464,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--neg-fraction", type=float, default=0.5)
     parser.add_argument("--seed", type=int, default=20260725)
     parser.add_argument("--out-dir", type=pathlib.Path, default=RESULTS)
+    parser.add_argument(
+        "--sweep", nargs="+", type=float, default=None,
+        help="measure at these negative-operand fractions and write sign_sweep.json. "
+             "This is the sign-magnitude hypothesis measured in watts rather than in "
+             "transition counts.")
     args = parser.parse_args(argv)
 
     for tool in ("yosys", "iverilog", "vvp", "openroad"):
@@ -380,6 +483,9 @@ def main(argv: list[str] | None = None) -> int:
     BUILD.mkdir(parents=True, exist_ok=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
+    if args.sweep is not None:
+        return sweep(args)
+
     entries = {}
     for top in args.tops:
         print(f"{top}", flush=True)
@@ -392,6 +498,7 @@ def main(argv: list[str] | None = None) -> int:
               f"datapath {entry['datapath_fmax_mhz']:.1f} MHz, "
               f"{entry['power']['total']['total_w'] * 1e3:.2f} mW at "
               f"{1000.0 / BENCH_CLOCK_NS:.0f} MHz, "
+              f"{entry['energy_per_tile_pj']:.1f} pJ/tile, "
               f"annotation {entry['activity_annotation']['coverage']:.1%}", flush=True)
 
     payload = {
@@ -427,6 +534,7 @@ def main(argv: list[str] | None = None) -> int:
         writer.writerow(["top", "cell_area_um2", "critical_path_ns", "fmax_mhz",
                          "datapath_path_ns", "datapath_fmax_mhz",
                          "internal_w", "switching_w", "leakage_w", "total_w",
+                         "cycles_per_tile", "energy_per_tile_pj",
                          "annotation_coverage"])
         for top, e in entries.items():
             total = e["power"]["total"]
@@ -437,6 +545,7 @@ def main(argv: list[str] | None = None) -> int:
                              f"{total['switching_w']:.9f}",
                              f"{total['leakage_w']:.9f}",
                              f"{total['total_w']:.9f}",
+                             e["cycles_per_tile"], e["energy_per_tile_pj"],
                              e["activity_annotation"]["coverage"]])
     print(f"\nwrote {args.out_dir / 'summary.json'} and summary.csv")
     return 0

@@ -65,6 +65,10 @@ import pya
 lv = pya.LayoutView()
 lv.load_layout(gds, 0)
 lv.max_hier()
+
+# Net name labels are on the datatype 25 layers and KLayout draws the whole string,
+# which at die scale covers the layout in text and spills past the boundary.
+lv.set_config("text-visible", "false")
 try:
     if lyp:
         lv.load_layer_props(lyp)
@@ -151,14 +155,19 @@ def contact_sheet(cards: list[dict], out: pathlib.Path, kind: str,
     import matplotlib.image as mpimg
     import matplotlib.pyplot as plt
 
-    columns = min(len(cards), 3)
+    columns = 3 if len(cards) >= 3 else len(cards)
     rows = (len(cards) + columns - 1) // columns
-    slot = max(max(c["span_x"], c["span_y"]) for c in cards)
 
-    # One figure inch per 150 um of silicon, plus room for the captions.
+    # The slot is sized by the largest die, and every die is drawn at the same
+    # micrometres-per-inch inside it. That is the whole point of the sheet: the size
+    # difference between the candidates has to be visible rather than normalised away.
+    slot = max(max(c["span_x"], c["span_y"]) for c in cards)
     scale = 3.4 / slot
-    cell_w, cell_h = 3.4, 3.4 + 0.62
-    fig = plt.figure(figsize=(columns * cell_w, rows * cell_h + 0.5))
+    title_in, image_in, footer_in = 0.66, 3.4, 0.72
+    cell_w, cell_h = 3.5, image_in + title_in
+    fig_w = max(columns * cell_w, 9.4)
+    fig_h = rows * cell_h + footer_in
+    fig = plt.figure(figsize=(fig_w, fig_h))
 
     for index, card in enumerate(cards):
         row, column = divmod(index, columns)
@@ -166,13 +175,13 @@ def contact_sheet(cards: list[dict], out: pathlib.Path, kind: str,
             w, h = card["span_x"] * scale, card["span_y"] * scale
             image = card["die"]
         else:
-            w = h = ZOOM_UM * (3.4 / ZOOM_UM)
+            w = h = image_in
             image = card["zoom"]
-        left = (column * cell_w + (cell_w - w) / 2.0) / (columns * cell_w)
-        bottom = 1.0 - ((row + 1) * cell_h - (cell_h - 0.62 - h) / 2.0) / (
-            rows * cell_h + 0.5)
-        ax = fig.add_axes([left, bottom, w / (columns * cell_w),
-                           h / (rows * cell_h + 0.5)])
+        centre = (column + 0.5) * fig_w / columns
+        top_from_top = row * cell_h + title_in + (image_in - h) / 2.0
+        ax = fig.add_axes([(centre - w / 2.0) / fig_w,
+                           (fig_h - top_from_top - h) / fig_h,
+                           w / fig_w, h / fig_h])
         ax.imshow(mpimg.imread(str(image)))
         ax.set_xticks([])
         ax.set_yticks([])
@@ -204,7 +213,7 @@ def contact_sheet(cards: list[dict], out: pathlib.Path, kind: str,
             f"the same magnification, taken from the middle of the core.\nSame function, "
             f"same flow, same constraint: what differs is the microarchitecture."
         )
-    fig.text(0.012, 0.008, caption, fontsize=9, color="#5a6672", va="bottom")
+    fig.text(0.012, 0.10 / fig_h, caption, fontsize=9.5, color="#5a6672", va="bottom")
     fig.savefig(out, dpi=150, facecolor="white")
     plt.close(fig)
     print(f"wrote {out.relative_to(REPO)}")

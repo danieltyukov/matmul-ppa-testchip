@@ -9,10 +9,10 @@ The short version:
 
 | Metric | What is measured | Status |
 |---|---|---|
-| Area | Yosys cell counts and gate equivalents (generic gates); cell area in um2 from the IHP SG13G2 liberty when the PDK is present | measured from synthesis, not from layout |
-| Performance | cycles and MAC count read out of the chip's own counters over SPI | measured in simulation, matched against a closed-form model |
-| Power | bit transitions per net, weighted by Hamming distance, on gate level netlists | a proxy, not power |
-| Layout | not produced | OpenROAD and the SG13G2 physical views are not installed here |
+| Area | Yosys cell counts and gate equivalents (generic gates); cell area in um2 from the IHP SG13G2 liberty; die area from the routed layout | synthesis and layout, both committed, labelled apart |
+| Performance | cycles and MAC count read out of the chip's own counters over SPI; maximum frequency from signoff timing on the routed netlist at three PDK corners | measured in simulation and after routing |
+| Power | bit transitions per net weighted by Hamming distance (proxy), and watts from OpenROAD with switching activity annotated from a gate level VCD | both, reported side by side, and they do not agree by the same margin |
+| Layout | routed GDS per candidate, DRC and LVS clean | produced by LibreLane on the IHP SG13G2 PDK |
 
 ---
 
@@ -27,42 +27,37 @@ Run, and committed:
 - Yosys 0.33 gate level netlists for every candidate, simulated and checked against
   a reference before their activity is counted.
 - The switching-activity sweep, at RTL and at gate level.
-
-Partly run:
-
-- **Place and route, on one candidate, up to detailed routing.** OpenROAD 26Q3 and the
-  IHP SG13G2 standard cell views became available late in development, so
-  `flow/openroad/block_flow.tcl` was written and run on `engine_booth4`. What completed:
-
-  | Step | Result |
-  |---|---|
-  | Floorplan | 878 um square die, 726,259 um2 core, 45.2 percent utilisation, 30,389 instances |
-  | Pin placement | 781 pins placed, IO net half-perimeter wire length 377,063 um |
-  | Power grid | ring on TopMetal1 and TopMetal2, Metal1 followpin rails |
-  | Global and detailed placement | legal, zero displacement in legalisation |
-  | Clock tree synthesis | complete |
-  | Setup and hold repair | **no setup violations, no hold violations** at the 20 ns target |
-  | Detailed routing | **did not complete** |
-
-  Detailed routing stalls in its pin query. The cause is identifiable: `launch_i` reaches
-  all 512 accumulator registers as a single net, which OpenROAD warns about (DRT-0120),
-  and the block SDC had no fanout limit so the resizer never built a buffer tree for it.
-  `set_max_fanout` is now in the script, but the corrected run has not been completed
-  here, so **there is no GDS and no routed area number in this repository.**
-
-  Five real bugs in the flow were found by running it rather than by reading it: a
-  missing `make_tracks`, an unnamed voltage domain, two deprecated routing arguments, and
-  logic constants arriving as literals rather than tie cells. All five are fixed. Treat
-  the chip-level sequence in `flow/openroad/floorplan.tcl` and its siblings as still
-  untested: it has never been run, and it has a pad ring and SRAM macros that the block
-  flow does not exercise.
+- **Real IHP SG13G2 synthesis, timing and power per candidate**, by
+  `tools/pdk_ppa.py`: cell area in um2, path delay at the slow corner, and power in
+  watts with switching activity annotated from a gate level VCD of the same netlist.
+  Results in `results/pdk/`.
+- **Place and route to a signed-off GDS per candidate**, by `tools/run_pnr.py` driving
+  LibreLane on the IHP SG13G2 PDK: floorplan, power grid, placement, clock tree,
+  routing, parasitic extraction, signoff timing at three corners, Magic and KLayout DRC,
+  LVS against the netlist, and antenna, slew and capacitance checks. Metrics in
+  `results/pnr/`, renders in `docs/img/layout_*.png`.
 
 Not run:
-- **Real power analysis.** That needs a placed and routed netlist, which does not exist,
-  and a switching activity file. `flow/openroad/finish.tcl` calls `report_power` and takes
-  a VCD through `POWER_VCD`, and that is the only place in this repository that
-  would produce a power number in watts.
+
+- **The chip-level flow.** `flow/openroad/floorplan.tcl` and its siblings place and route
+  `gemm_bench_chip` with a pad ring and SRAM macros. That sequence has never completed:
+  the candidates are what has been routed, and every routed number in this repository is
+  a candidate.
+- **A delay-annotated gate level simulation.** The PDK's specify blocks have to be
+  stripped for Icarus to parse the cell models, so the gate level simulation is
+  zero-delay and no glitch is ever counted. This is the largest known bias in both the
+  proxy and the annotated power number, and it flatters deep combinational designs.
 - **Silicon.** Nothing has been fabricated.
+
+The earlier hand-written OpenROAD block flow, `flow/openroad/block_flow.tcl`, still
+works and is still committed. It reached clock tree synthesis and timing closure on
+`engine_booth4` with no setup and no hold violations, and stalled in detailed routing
+because `launch_i` reached all 512 accumulator registers as one unbuffered net. Five real
+bugs in that flow were found by running it rather than by reading it: a missing
+`make_tracks`, an unnamed voltage domain, two deprecated routing arguments, and logic
+constants arriving as literals rather than tie cells. The fanout limit that fixes the
+stall is now in the script, and it is also why `constraints/block.sdc` sets one. The
+LibreLane flow is what produced the committed GDS.
 
 Nowhere in this repository is a synthesis estimate presented as a layout result, or
 a transition count presented as power. If you find such a place, it is a bug.
@@ -116,6 +111,67 @@ and `store REF` are 4 KiB each, so `bench_core` and `gemm_bench_chip` are domina
 by 74 kbit of flip-flops that a macro-backed implementation would replace with four
 compiled SRAM cuts at a fraction of the area. The per-candidate numbers are
 unaffected: the candidates contain no memory.
+
+### Routed area: `make pnr`
+
+`tools/run_pnr.py` runs LibreLane's Classic flow on each candidate and reads
+`final/metrics.json`. Three area numbers come out of it and they mean different things:
+
+- `design__instance__area__stdcell` is the design's own cells after routing. It is
+  larger than the synthesis number because place and route inserts the buffering the
+  netlist needs and the resizer upsizes cells to meet timing. The difference is not
+  overhead in the pejorative sense: a synthesis netlist with a 512-way unbuffered net is
+  not a design that can be built.
+- `design__instance__area` adds the fill cells, which exist to satisfy the density
+  rules and are not the design. Never compare this against synthesis.
+- `design__die__area` is the die. It includes the routing, the power grid, the fill and
+  the margin around the core at the configured 40 percent target utilisation.
+
+Every candidate is routed at the same 20 ns constraint and the same target utilisation,
+so these are comparable across candidates. Closing each candidate at its own best period
+instead would measure each one under a different amount of optimisation pressure, which
+is exactly the confound this chip exists to remove.
+
+---
+
+## Timing, and a trap worth documenting
+
+The first version of the timing measurement in this repository reported 32.9 MHz for
+`engine_infer`, `engine_wallace`, `engine_booth4` and `engine_signmag`. All four. Within
+15 picoseconds of each other. Four different multiplier microarchitectures cannot have
+the same critical path, and the reason they appeared to is worth writing down, because
+the mistake is easy to make and the number looks plausible.
+
+Two things were wrong.
+
+**Unconstrained inputs are invisible.** The SDC constrained `rst_ni`, `acc_clear_i` and
+`launch_i` but not `a_tile_i` or `b_tile_i`. An input port with no arrival time has no
+setup requirement, so every path through the multiplier array was excluded from the
+analysis. What was being timed was the control logic.
+
+**A Yosys netlist has no buffering.** `acc_clear_i` reaches all `TILE_M*TILE_N`
+accumulator flip-flops, which is 512 of them, through one gate. Yosys does no
+load-aware buffering, so that gate drives 512 loads and takes 21 ns to do it. That path
+is identical in every candidate because the accumulator bank is shared, which is why the
+four numbers agreed.
+
+So `tools/pdk_ppa.py` now constrains every port and reports two numbers per candidate:
+
+- `critical_path_ns`, the worst path in the netlist, with `limiting_path` naming its
+  endpoints so a reader can see for themselves what limits it.
+- `datapath_path_ns`, the worst path from the operand ports to whatever register they
+  reach. That is the arithmetic, and it is what differs between the candidates.
+
+Neither is the design's frequency. **The routed number is**, because place and route
+buffers the control net properly: `results/pnr/summary.json` reports
+`1/(period - worst setup slack)` from signoff timing on the routed netlist with
+parasitics extracted from the routing, at all three PDK corners, and the slow corner is
+the one to quote.
+
+One detail makes that arithmetic exact rather than approximate.
+`constraints/block.sdc` sets the IO budget to a fixed 1 ns instead of a fraction of the
+clock period. With a proportional budget the slack moves for two reasons when the period
+moves, and `1/(period - slack)` is then wrong.
 
 ---
 

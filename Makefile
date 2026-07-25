@@ -31,8 +31,15 @@ CHIP_TESTS := test_config test_spi_protocol test_end_to_end test_tiling \
               test_reset_gating
 ENGINE_TESTS := test_engine_exact test_engine_equiv
 
+# Place and route thread count. LibreLane leaves KLAYOUT_DRC_THREADS, KLAYOUT_XOR_THREADS
+# and DRT_THREADS unset, and on a design of this size the DRC deck alone then takes
+# longer than every other stage put together. Default to the machine's core count so a
+# fork inherits the fix; override it (PNR_THREADS=4) when the machine is shared.
+PNR_THREADS ?= $(shell nproc)
+
 .PHONY: all help venv lint lint-template sim sim-engines sim-chip sim-quick synth \
-        synth-pdk power images report style flow clean distclean check-tools
+        synth-pdk pdk-ppa power pnr layout images report style flow clean distclean \
+        check-tools
 
 all: lint lint-template style sim synth power images
 	@echo ""
@@ -47,7 +54,10 @@ help:
 	@echo "  make sim-quick   a reduced sweep, what CI runs"
 	@echo "  make synth       Yosys per candidate and for the chip, generic gates"
 	@echo "  make synth-pdk   the same mapped to IHP SG13G2 (needs SG13G2_LIB)"
+	@echo "  make pdk-ppa     real um2, path delay and VCD-annotated watts per candidate"
 	@echo "  make power       switching-activity proxy: gate level and RTL sweeps"
+	@echo "  make pnr         LibreLane place and route per candidate, to GDS"
+	@echo "  make layout      render the routed GDS and the candidate contact sheets"
 	@echo "  make images      regenerate every figure in docs/img from results/"
 	@echo "  make flow        OpenROAD place and route (needs the IHP PDK)"
 	@echo "  make all         lint, sim, synth, power, images"
@@ -165,11 +175,29 @@ synth-pdk: venv
 	fi
 	$(VENV_PY) tools/synth_collect.py --mode sg13g2
 
+# Real PPA on the target process: cell area in um2, the operand-to-accumulator path
+# delay at the slow corner, and power in watts with switching activity annotated from a
+# gate level VCD of the same netlist.
+pdk-ppa: venv
+	$(VENV_PY) tools/pdk_ppa.py
+
 # ---------------------------------------------------------------------------
 # Power proxy
 # ---------------------------------------------------------------------------
 power: venv
 	$(VENV_PY) tools/activity_sweep.py
+
+# ---------------------------------------------------------------------------
+# Place and route
+#
+# One LibreLane run per candidate, sequentially, to a signed-off GDS with DRC, LVS,
+# antenna, slew and capacitance checks. Needs LibreLane and its ihp-sg13g2 PDK.
+# ---------------------------------------------------------------------------
+pnr: venv
+	PNR_THREADS=$(PNR_THREADS) $(VENV_PY) tools/run_pnr.py --threads $(PNR_THREADS)
+
+layout: venv
+	$(VENV_PY) tools/render_gds.py
 
 # ---------------------------------------------------------------------------
 # Figures
@@ -182,6 +210,7 @@ images: venv
 	$(VENV_PY) tools/plot_ppa.py
 	$(VENV_PY) tools/plot_activity.py
 	$(VENV_PY) tools/plot_floorplan.py
+	$(VENV_PY) tools/plot_pnr.py
 	@echo "images: docs/img is up to date"
 
 # ---------------------------------------------------------------------------

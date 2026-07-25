@@ -78,6 +78,93 @@ def activity_table(gate) -> str:
     return "\n".join(lines) + "\n"
 
 
+def real_ppa_table(pdk, pnr, perf) -> str:
+    """The headline table: real area, real frequency, real power, per candidate."""
+    if not (pdk and pnr):
+        return "(needs results from tools/pdk_ppa.py and tools/run_pnr.py)\n"
+    cands, routed = pdk["candidates"], pnr["candidates"]
+    clock = next(iter(cands.values()))["power_clock_ns"]
+    lines = [
+        f"Power at {1000.0 / clock:.0f} MHz, annotated from a gate level VCD at an even "
+        f"operand sign mix. Fmax at the {pnr['signoff_corner']} corner.",
+        "",
+        "| Candidate | Cell area | Die area | Post-route Fmax | Power | Energy/tile |",
+        "|---|---|---|---|---|---|",
+    ]
+    for name in ORDER:
+        top = f"engine_{name}"
+        cell = cands.get(top)
+        die = routed.get(top)
+        if not (cell and die):
+            continue
+        lines.append(
+            f"| `{top}` | {die['design__instance__area__stdcell']:,.0f} um2 | "
+            f"{die['design__die__area'] / 1e6:.3f} mm2 | "
+            f"{die['fmax_mhz']:.1f} MHz | "
+            f"{cell['power']['total']['total_w'] * 1e3:.2f} mW | "
+            f"{cell['energy_per_tile_pj']:,.0f} pJ |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def timing_table(pdk, pnr) -> str:
+    """Where the frequency comes from, and what limits it at each stage."""
+    if not (pdk and pnr):
+        return "(needs results from tools/pdk_ppa.py and tools/run_pnr.py)\n"
+    cands, routed = pdk["candidates"], pnr["candidates"]
+    lines = [
+        "| Candidate | Netlist worst path | Limited by | Datapath path | Routed Fmax "
+        "(slow) | Routed Fmax (typical) |",
+        "|---|---|---|---|---|---|",
+    ]
+    for name in ORDER:
+        top = f"engine_{name}"
+        cell = cands.get(top)
+        die = routed.get(top)
+        if not cell:
+            continue
+        by_corner = die["fmax_mhz_by_corner"] if die else {}
+        lines.append(
+            f"| `{top}` | {cell['critical_path_ns']:.2f} ns | "
+            f"`{cell['limiting_path']['from']}` | "
+            f"{cell['datapath_path_ns']:.2f} ns | "
+            f"{(die['fmax_mhz'] if die else 0):.1f} MHz | "
+            f"{by_corner.get('nom_typ_1p20V_25C', 0):.1f} MHz |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def sign_power_table(sweep, gate) -> str:
+    """The sign-magnitude hypothesis in watts, against the same test in transitions."""
+    if not sweep:
+        return "(needs results from tools/pdk_ppa.py --sweep)\n"
+    points = {(p["top"], p["neg_fraction"]): p for p in sweep["points"]}
+    fractions = sorted({p["neg_fraction"] for p in sweep["points"]})
+    lines = [
+        "| Negative operands | wallace | signmag | total power | switching power "
+        "| transition count |",
+        "|---|---|---|---|---|---|",
+    ]
+    for f in fractions:
+        w = points.get(("engine_wallace", f))
+        s = points.get(("engine_signmag", f))
+        if not (w and s):
+            continue
+        proxy = ""
+        if gate:
+            point = min(gate["points"],
+                        key=lambda p: abs(
+                            p["operand_stats"]["measured_neg_fraction"] - f))
+            per = point["per_candidate"]
+            proxy = f"{100 * (per['signmag'] / per['wallace'] - 1):+.1f}%"
+        lines.append(
+            f"| {f:.0%} | {w['total_w'] * 1e3:.3f} mW | {s['total_w'] * 1e3:.3f} mW | "
+            f"{100 * (s['total_w'] / w['total_w'] - 1):+.1f}% | "
+            f"{100 * (s['switching_w'] / w['switching_w'] - 1):+.1f}% | {proxy} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def chip_table(synth) -> str:
     if not synth:
         return "(chip table needs results from make synth)\n"
@@ -97,21 +184,34 @@ def chip_table(synth) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--ppa", action="store_true")
+    parser.add_argument("--real", action="store_true")
+    parser.add_argument("--timing", action="store_true")
     parser.add_argument("--activity", action="store_true")
     parser.add_argument("--chip", action="store_true")
     args = parser.parse_args()
-    show_all = not (args.ppa or args.activity or args.chip)
+    show_all = not (args.ppa or args.real or args.timing or args.activity or args.chip)
 
     synth = load(RESULTS / "synth" / "generic" / "summary.json")
     perf = load(RESULTS / "perf" / "cycle_counts.json")
     gate = load(RESULTS / "activity" / "gate_summary.json")
+    pdk = load(RESULTS / "pdk" / "summary.json")
+    pnr = load(RESULTS / "pnr" / "summary.json")
+    sweep = load(RESULTS / "pdk" / "sign_sweep.json")
 
+    if args.real or show_all:
+        print("## Real PPA per candidate\n")
+        print(real_ppa_table(pdk, pnr, perf))
+    if args.timing or show_all:
+        print("## Where the frequency comes from\n")
+        print(timing_table(pdk, pnr))
     if args.ppa or show_all:
-        print("## PPA per candidate\n")
+        print("## Technology-independent PPA per candidate\n")
         print(ppa_table(synth, perf, gate))
     if args.activity or show_all:
         print("## Switching activity against operand sign mix\n")
         print(activity_table(gate))
+        print("## Measured power against operand sign mix\n")
+        print(sign_power_table(sweep, gate))
     if args.chip or show_all:
         print("## Whole chip\n")
         print(chip_table(synth))

@@ -1,0 +1,384 @@
+{
+  "source": "tools/pdk_ppa.py",
+  "pdk": "/home/danieltyukov/.local/share/pdk/IHP-Open-PDK/ihp-sg13g2",
+  "timing_corner": "slow_1p08V_125C",
+  "power_corner": "typ_1p20V_25C",
+  "note": "Real IHP SG13G2 numbers, post-synthesis. Area is standard cell area, not die area: no routing, filler, tap, power grid or pad frame. Timing uses placement-estimated parasitics from set_wire_rc plus estimate_parasitics, not parasitics extracted from routing. critical_path_ns and fmax_mhz are the worst path in the netlist, and limiting_path names it: on a Yosys netlist that path is the unbuffered acc_clear_i or launch_i fanout to 512 accumulator flip-flops, not the arithmetic, which is why it is nearly identical across the single-cycle candidates. datapath_path_ns is the operand-to-accumulator path, which is the number that distinguishes the microarchitectures. Place and route buffers the control net, so the routed frequencies in results/pnr/summary.json are the ones to quote. Power is annotated from a VCD of the same netlist under an identical operand stream across candidates, at power_clock_ns, and the annotation coverage is reported rather than assumed. Dynamic power scales with frequency. The gate level simulation is zero-delay because the PDK specify blocks must be stripped for Icarus, so glitch power is not captured and deep combinational designs are flattered.",
+  "candidates": {
+    "engine_infer": {
+      "top": "engine_infer",
+      "timing_corner": "slow_1p08V_125C",
+      "power_corner": "typ_1p20V_25C",
+      "cell_area_um2": 392866.0218,
+      "critical_path_ns": 30.3848,
+      "fmax_mhz": 32.91,
+      "fmax_check_slack_ns": 0.0002,
+      "limiting_path": {
+        "from": "acc_clear_i",
+        "to": "_70912_",
+        "slack_ns": 9.6152
+      },
+      "datapath_path_ns": 10.061,
+      "datapath_fmax_mhz": 99.39,
+      "datapath_path": {
+        "from": "b_tile_i[112]",
+        "to": "_71103_",
+        "slack_ns": 29.939
+      },
+      "seed_period_ns": 40.0,
+      "seed_slack_ns": 9.6152,
+      "power_clock_ns": 20.0,
+      "vcd_span_ns": 2450.0,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 246.659,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00161769497,
+          "switching_w": 2.48152046e-05,
+          "leakage_w": 2.72280886e-07,
+          "total_w": 0.00164278247
+        },
+        "combinational": {
+          "internal_w": 0.00140074745,
+          "switching_w": 0.00178433559,
+          "leakage_w": 4.62919797e-06,
+          "total_w": 0.0031897123
+        },
+        "clock": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00301843835,
+          "switching_w": 0.00180915336,
+          "leakage_w": 4.90148113e-06,
+          "total_w": 0.00483249314
+        }
+      },
+      "activity_annotation": {
+        "annotated_pins": 117134,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_wallace": {
+      "top": "engine_wallace",
+      "timing_corner": "slow_1p08V_125C",
+      "power_corner": "typ_1p20V_25C",
+      "cell_area_um2": 403448.7744,
+      "critical_path_ns": 30.3785,
+      "fmax_mhz": 32.92,
+      "fmax_check_slack_ns": 0.0005,
+      "limiting_path": {
+        "from": "acc_clear_i",
+        "to": "_77285_",
+        "slack_ns": 9.6215
+      },
+      "datapath_path_ns": 10.4559,
+      "datapath_fmax_mhz": 95.64,
+      "datapath_path": {
+        "from": "b_tile_i[55]",
+        "to": "_77604_",
+        "slack_ns": 29.5441
+      },
+      "seed_period_ns": 40.0,
+      "seed_slack_ns": 9.6215,
+      "power_clock_ns": 20.0,
+      "vcd_span_ns": 2450.0,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 253.498,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00161766016,
+          "switching_w": 2.33507635e-05,
+          "leakage_w": 2.72280886e-07,
+          "total_w": 0.00164128328
+        },
+        "combinational": {
+          "internal_w": 0.0013144986,
+          "switching_w": 0.00200596591,
+          "leakage_w": 4.74816807e-06,
+          "total_w": 0.00332521251
+        },
+        "clock": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00293215644,
+          "switching_w": 0.00202931347,
+          "leakage_w": 5.02045123e-06,
+          "total_w": 0.00496649044
+        }
+      },
+      "activity_annotation": {
+        "annotated_pins": 126125,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_booth4": {
+      "top": "engine_booth4",
+      "timing_corner": "slow_1p08V_125C",
+      "power_corner": "typ_1p20V_25C",
+      "cell_area_um2": 328564.2528,
+      "critical_path_ns": 30.3922,
+      "fmax_mhz": 32.9,
+      "fmax_check_slack_ns": -0.0002,
+      "limiting_path": {
+        "from": "acc_clear_i",
+        "to": "_59854_",
+        "slack_ns": 9.6078
+      },
+      "datapath_path_ns": 11.8514,
+      "datapath_fmax_mhz": 84.38,
+      "datapath_path": {
+        "from": "b_tile_i[57]",
+        "to": "_59885_",
+        "slack_ns": 28.1486
+      },
+      "seed_period_ns": 40.0,
+      "seed_slack_ns": 9.6078,
+      "power_clock_ns": 20.0,
+      "vcd_span_ns": 2450.0,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 237.3,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00161766156,
+          "switching_w": 2.33530773e-05,
+          "leakage_w": 2.72280886e-07,
+          "total_w": 0.00164128689
+        },
+        "combinational": {
+          "internal_w": 0.00122850155,
+          "switching_w": 0.00177544495,
+          "leakage_w": 3.9039378e-06,
+          "total_w": 0.00300785038
+        },
+        "clock": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00284616067,
+          "switching_w": 0.00179880066,
+          "leakage_w": 4.17622095e-06,
+          "total_w": 0.00464913715
+        }
+      },
+      "activity_annotation": {
+        "annotated_pins": 100210,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_signmag": {
+      "top": "engine_signmag",
+      "timing_corner": "slow_1p08V_125C",
+      "power_corner": "typ_1p20V_25C",
+      "cell_area_um2": 386715.168,
+      "critical_path_ns": 30.3934,
+      "fmax_mhz": 32.9,
+      "fmax_check_slack_ns": -0.0004,
+      "limiting_path": {
+        "from": "acc_clear_i",
+        "to": "_75471_",
+        "slack_ns": 9.6066
+      },
+      "datapath_path_ns": 12.0819,
+      "datapath_fmax_mhz": 82.77,
+      "datapath_path": {
+        "from": "a_tile_i[104]",
+        "to": "_75502_",
+        "slack_ns": 27.9181
+      },
+      "seed_period_ns": 40.0,
+      "seed_slack_ns": 9.6066,
+      "power_clock_ns": 20.0,
+      "vcd_span_ns": 2450.0,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 232.425,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00161766156,
+          "switching_w": 2.33750688e-05,
+          "leakage_w": 2.72280886e-07,
+          "total_w": 0.00164130889
+        },
+        "combinational": {
+          "internal_w": 0.0011683628,
+          "switching_w": 0.00173945469,
+          "leakage_w": 4.49502295e-06,
+          "total_w": 0.00291231251
+        },
+        "clock": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00278602215,
+          "switching_w": 0.00176283345,
+          "leakage_w": 4.76730611e-06,
+          "total_w": 0.00455362303
+        }
+      },
+      "activity_annotation": {
+        "annotated_pins": 121694,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_bitserial": {
+      "top": "engine_bitserial",
+      "timing_corner": "slow_1p08V_125C",
+      "power_corner": "typ_1p20V_25C",
+      "cell_area_um2": 150433.7184,
+      "critical_path_ns": 66.2402,
+      "fmax_mhz": 15.1,
+      "fmax_check_slack_ns": -0.0002,
+      "limiting_path": {
+        "from": "_25522_",
+        "to": "_25042_",
+        "slack_ns": -26.2402
+      },
+      "datapath_path_ns": 12.2363,
+      "datapath_fmax_mhz": 81.72,
+      "datapath_path": {
+        "from": "b_tile_i[31]",
+        "to": "_25073_",
+        "slack_ns": 27.7637
+      },
+      "seed_period_ns": 40.0,
+      "seed_slack_ns": -26.2402,
+      "power_clock_ns": 20.0,
+      "vcd_span_ns": 9170.0,
+      "cycles_per_tile": 9.552,
+      "energy_per_tile_pj": 802.507,
+      "power": {
+        "sequential": {
+          "internal_w": 0.0024942765,
+          "switching_w": 4.22960184e-05,
+          "leakage_w": 4.22998994e-07,
+          "total_w": 0.00253699557
+        },
+        "combinational": {
+          "internal_w": 0.000781775045,
+          "switching_w": 0.000880529929,
+          "leakage_w": 1.38787959e-06,
+          "total_w": 0.00166369288
+        },
+        "clock": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00327605149,
+          "switching_w": 0.000922826701,
+          "leakage_w": 1.81087853e-06,
+          "total_w": 0.00420068903
+        }
+      },
+      "activity_annotation": {
+        "annotated_pins": 44271,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    }
+  }
+}
