@@ -2,15 +2,16 @@
 
 An open-source ASIC test chip that measures the power, performance and area of
 competing INT8 matrix-multiply microarchitectures: on the same die, under the same
-workload, with the same measurement.
+workload, with the same measurement, through the same flow, to a routed GDS.
 
 [![lint](https://github.com/danieltyukov/matmul-ppa-testchip/actions/workflows/lint.yml/badge.svg)](https://github.com/danieltyukov/matmul-ppa-testchip/actions/workflows/lint.yml)
 [![sim](https://github.com/danieltyukov/matmul-ppa-testchip/actions/workflows/sim.yml/badge.svg)](https://github.com/danieltyukov/matmul-ppa-testchip/actions/workflows/sim.yml)
 [![synth](https://github.com/danieltyukov/matmul-ppa-testchip/actions/workflows/synth.yml/badge.svg)](https://github.com/danieltyukov/matmul-ppa-testchip/actions/workflows/synth.yml)
 [![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
 
-Target: IHP SG13G2 130 nm open-source PDK. Flow: Yosys and OpenROAD. RTL:
-synthesisable SystemVerilog. Verification: cocotb with real assertions.
+Target: IHP SG13G2 130 nm open-source PDK. Flow: Yosys, OpenROAD and LibreLane, to a
+DRC and LVS clean GDS. RTL: synthesisable SystemVerilog. Verification: cocotb with real
+assertions, run again on the routed netlist.
 
 ---
 
@@ -18,15 +19,21 @@ synthesisable SystemVerilog. Verification: cocotb with real assertions.
 
 Anyone building an INT8 accelerator has to pick a multiplier. The textbooks offer
 Wallace trees, Booth recoding, bit-serial arrays, and the option of writing `*` and
-letting the synthesiser decide. The literature offers numbers from different
-processes, tile sizes, accumulator widths and workloads, which makes them close to
-incomparable.
+letting the synthesiser decide. The literature offers numbers from different processes,
+tile sizes, accumulator widths and workloads, which makes them close to incomparable.
 
 This chip settles it for one process and one tile size. Five candidate
 microarchitectures sit on the same die behind an identical interface, selectable at
 runtime. The chip runs the same 32x32x32 INT8 GEMM through each of them, reports
-cycles, MAC count, area and switching activity, and checks every result against a
-golden matrix with an on-chip comparator.
+cycles, MAC count and switching activity, and checks every result against a golden
+matrix with an on-chip comparator. Each candidate is then placed and routed on its own
+at an identical clock constraint, so the area and frequency numbers are physical rather
+than estimated.
+
+There is a second, narrower question underneath it, and it is the reason candidate 3
+exists: **does sign-magnitude operand encoding actually reduce power?** The answer is in
+[the sign-magnitude result](#the-sign-magnitude-result), and it is a qualified no as
+often as it is a yes.
 
 ![Architecture](docs/img/architecture.svg)
 
@@ -40,24 +47,121 @@ golden matrix with an on-chip comparator.
 | 3 | `engine_signmag` | Sign-magnitude datapath: unsigned magnitude array, sign applied once | 1 cycle |
 | 4 | `engine_bitserial` | No multiplier. Horner's method over 8 bit planes | 8 cycles |
 
+Two more scopes are measured alongside them, because a candidate in isolation is not the
+whole story:
+
+| Scope | What it is | Why it is measured |
+|---|---|---|
+| `engine_array` | all five candidates, their clock gates and their operand isolation | the candidates in full-chip context, and the price of making the measurement valid |
+| `bench_core` | the whole benchmark core: sequencer, stores, meters, SPI | where the memory cost shows up |
+
 Every candidate is hand-written and builds from this repository with nothing but
 Verilator, Icarus and Yosys. There is no external generator, no private tool, and no
-committed netlist you cannot regenerate. Adding a sixth candidate touches five files:
-[docs/ADDING_A_CANDIDATE.md](docs/ADDING_A_CANDIDATE.md).
+committed netlist you cannot regenerate.
+
+### What makes this a controlled experiment
+
+Comparing microarchitectures is easy to do badly. Four things here exist specifically to
+stop the comparison from being an anecdote:
+
+1. **Identical interface.** Every candidate implements the same port list, so nothing
+   about the surrounding design changes when the selection changes.
+2. **Identical workload.** The same operand stream, from the same seed, reaches every
+   candidate. The sweeps vary one property of the data at a time.
+3. **Identical constraint through place and route.** Every candidate routes at the same
+   20 ns period and the same 40 percent target utilisation. Closing each at its own best
+   period would measure each under a different amount of optimisation pressure, which is
+   exactly the confound worth removing.
+4. **The costs land on whoever incurs them.** The sign-magnitude converters live inside
+   `engine_signmag`, not in shared logic. Moving them out would have flattered the
+   candidate this chip was built to test.
+
+`engine_signmag` and `engine_wallace` go further and share the same `csa_reduce` tree and
+the same final adder. The only difference between them is the operand encoding, so the
+gap between them is the encoding and nothing else.
 
 ---
 
 ## Results
 
-All measured, all committed under `results/`, all charts regenerated from those files
-by `make images`. Read [docs/PPA_METHODOLOGY.md](docs/PPA_METHODOLOGY.md) for exactly
-what each number does and does not mean.
+All measured, all committed under `results/`, all charts regenerated from those files by
+`make images`. `make report` prints the tables below straight from the same JSON, which
+is how they were checked. Read [docs/PPA_METHODOLOGY.md](docs/PPA_METHODOLOGY.md) for
+exactly what each number does and does not mean.
 
-### PPA per candidate
+### Post-route PPA per candidate
 
-Area from Yosys generic synthesis. Cycles and MACs read out of the chip's own
-performance counters over SPI. Switching activity from gate level simulation at an
-even operand sign mix.
+This is the headline table, and every column in it is physical. Area and frequency come
+from LibreLane's own `final/metrics.json` after routing, not from synthesis. Power is
+measured on the netlist the GDS was streamed from, with parasitics extracted from the
+routing.
+
+| Candidate | Routed cell area | Die area | Post-route Fmax | Power | Energy/tile |
+|---|---|---|---|---|---|
+| `engine_bitserial` | 185,381 um2 | 0.356 mm2 | 67.0 MHz | 6.56 mW | 1,254 pJ |
+
+**Only `engine_bitserial` has completed place and route so far.** The other four
+candidates are routing at the same constraint as this one and their rows land when they
+finish. Nothing in this table is estimated, and no row appears here until its flow has
+run to a signed-off GDS.
+
+That candidate routes clean: 0 Magic DRC errors, 0 KLayout DRC errors, 0 LVS errors and 0
+routing DRC violations, on a 588 x 606 um die holding 30,573 instances at 56.1 percent
+utilisation, with 411 mm of wire and 83,533 vias. Hold slack is positive at every corner.
+Three antenna violations and one max-fanout violation remain, which are reported rather
+than swept up.
+
+Its 185,381 um2 of routed cells against 149,875 um2 at synthesis is a **24 percent
+growth**, and the die is 2.4 times the routed cell area. Both numbers are the reason
+synthesis area should not be quoted as a die size.
+
+Fmax is `1/(period - worst setup slack)` from signoff STA at `nom_slow_1p08V_125C`, the
+corner a tapeout closes at. That arithmetic is exact rather than approximate because
+`constraints/block.sdc` fixes the IO budget at 1 ns instead of taking a fraction of the
+clock period, so nothing in the constraint moves when the period does.
+
+![Post-route area](docs/img/pnr_area.png)
+
+![Post-route Fmax](docs/img/pnr_fmax.png)
+
+Three area numbers come out of routing and they mean different things. Confusing them is
+the easiest way to overstate a result:
+
+- **Routed cell area** (`design__instance__area__stdcell`) is the design's own cells after
+  routing. It is larger than the synthesis figure because place and route inserts the
+  buffering the netlist actually needs and the resizer upsizes cells to meet timing. That
+  growth is not waste: a synthesis netlist with a 512-way unbuffered net is not a design
+  that can be built.
+- **Instance area** adds the fill cells that exist only to satisfy density rules. Never
+  compare this against synthesis.
+- **Die area** is the die, including routing, the power grid, the fill and the margin
+  around the core at the configured utilisation.
+
+### What the same function looks like in silicon
+
+The contact sheets are built to hold every candidate at one scale, so that functionally
+equivalent engines through the same flow at the same constraint can be compared as
+pictures rather than as numbers. They currently show the one candidate that has routed,
+and fill in as the rest finish.
+
+![Layout contact sheet](docs/img/layout_contact_sheet.png)
+
+The zoom sheet takes the same physical window of silicon from each candidate at the same
+magnification, which is where the microarchitecture is actually visible rather than just
+the die size:
+
+![Layout zoom contact sheet](docs/img/layout_zoom_contact_sheet.png)
+
+![engine_bitserial routed](docs/img/layout_engine_bitserial.png)
+
+These are rendered from the routed GDS by `tools/render_gds.py` driving KLayout with the
+PDK's own layer properties. If a GDS is missing the script says so rather than drawing
+something that looks like a layout and is not one.
+
+### Technology-independent PPA
+
+Yosys generic synthesis, before any PDK is involved. Useful because the ranking it
+produces is not a property of one library's cost model.
 
 | Candidate | Cells | Gate equivalents | Logic depth | Cycles | MACs/cycle | Transitions/tile |
 |---|---|---|---|---|---|---|
@@ -67,30 +171,45 @@ even operand sign mix.
 | `engine_signmag` | 42,361 | 82,184 | 59 | 3,904 | 8.39 | 12,118 |
 | `engine_bitserial` | 11,760 | 27,768 | 59 | 7,488 | 4.38 | 25,561 |
 
-### Real PDK cell area
+Gate equivalents weight each cell by its static CMOS transistor count, so a XOR-heavy
+design costs more than an AND-heavy one of the same cell count. That is technology
+independent and it is still not area. Logic depth is a count of gate levels, not a
+delay.
 
-Mapped to the IHP SG13G2 standard cell library (`sg13g2_stdcell_typ_1p20V_25C`,
-revision 0.1.4), so this is area in square micrometres rather than a gate count:
+### Real PDK cell area at synthesis
+
+Mapped to the IHP SG13G2 standard cell library, so this is square micrometres rather than
+a gate count. It is the number to compare against the routed cell area above, and the gap
+between the two is what place and route adds.
 
 | Candidate | Cells | Cell area | Relative | Area per MAC |
 |---|---|---|---|---|
 | `engine_infer` | 35,917 | 392,529 um2 | 1.20x | 6,133 um2 |
 | `engine_wallace` | 39,795 | 406,835 um2 | 1.24x | 6,357 um2 |
-| `engine_booth4` | 30,389 | **328,163 um2** | **1.00x** | **5,127 um2** |
+| `engine_booth4` | 30,389 | **328,163 um2** | **1.00x** | **5,128 um2** |
 | `engine_signmag` | 38,390 | 387,504 um2 | 1.18x | 6,055 um2 |
 | `engine_bitserial` | 13,143 | 149,875 um2 | 0.46x | 2,342 um2 |
 
-The generic and PDK rankings agree, which is the useful part: Booth is smallest,
-Wallace is largest, bit-serial is less than half of anything else, and the ordering
-does not depend on the cost model. At 64 MACs per launch, `engine_booth4` costs about
-5,100 square micrometres per MAC in 130 nm.
-
-**This is standard cell area, not die area.** No place and route has been run, so
-routing, filler, tap cells, the power grid and the pad frame are all excluded. A real
-die is substantially larger. The liberty file is not vendored in this repository;
-`tools/fetch_pdk.sh` downloads it and `make synth-pdk` reproduces the table.
-
 ![SG13G2 cell area](docs/img/ppa_area_sg13g2.png)
+
+**Booth recoding wins on area.** `engine_booth4` is 19 percent smaller than
+`engine_wallace` and 16 percent smaller than `engine_infer`, which is roughly what halving
+the partial product count should buy. `engine_bitserial` is 2.2 times smaller than
+anything else and pays for it with 1.92 times the cycles.
+
+The Wallace result is more interesting than a single ratio suggests, and it is worth
+being careful about which cost model is talking. Counting generic cells,
+`engine_wallace` is 18 percent larger than the inferred baseline, which reads as a clear
+loss for hand-writing a reduction tree. Measured in real SG13G2 area it is only **4
+percent larger**. The gap between those two figures is the point: generic cell counting
+treats every cell as equally expensive, and a real library maps a carry-save tree onto
+cells that are cheaper per cell than the count implies.
+
+So the honest version of the claim is narrower than "do not hand-write a Wallace tree".
+ABC's own multiplier mapping is at least as good as an explicit 3:2 tree handed to it,
+and on real area the two are within a few percent. What is not close is Booth: halving
+the partial products is worth about a fifth of the area against either of them, and that
+holds in both cost models.
 
 ![PPA area](docs/img/ppa_area.png)
 
@@ -98,17 +217,8 @@ die is substantially larger. The liberty file is not vendored in this repository
 
 ![Cycles and throughput](docs/img/ppa_cycles.png)
 
-What the area column says: **Booth recoding wins on area, and a hand-written Wallace
-tree does not beat the synthesiser.** `engine_booth4` is 27 percent smaller than
-`engine_wallace` and 13 percent smaller than `engine_infer`, which is what halving the
-partial product count should buy. But `engine_wallace` is 18 percent *larger* than the
-inferred baseline: ABC's own multiplier mapping beats an explicit 3:2 tree handed to
-it. That is a useful negative result for anyone tempted to hand-write a Wallace tree
-in 2026. `engine_bitserial` is 3.4 times smaller than anything else and pays for it
-with 1.92 times the cycles.
-
-Cycles are identical for the four single-cycle candidates, and exactly as the
-sequencer model predicts:
+Cycles are identical for the four single-cycle candidates, and exactly as the sequencer
+model predicts:
 
 ```
 per k tile = (max(TILE_M, TILE_K) + 1) + 1 + L = 5 + 1 + L
@@ -118,74 +228,161 @@ total      = GRID_M * GRID_N * (per o tile)
            = 64 * (1 + 8 * 14 + 4) = 7488   for L = 8
 ```
 
-`test_perf_counters` asserts measured against predicted, and the latency `L` it uses
-is itself measured at the engine harness level rather than assumed.
+`test_perf_counters` asserts measured against predicted, and the latency `L` it uses is
+itself measured at the engine harness level rather than assumed, so the check is not
+circular.
 
-### The sign-magnitude hypothesis
+### Where the frequency comes from
 
-Candidate 3 exists to test one claim: that converting operands from two's complement
-to sign-magnitude before the multiplier array reduces switching activity, because in
-two's complement a value crossing zero flips every high-order bit while in
-sign-magnitude it flips one sign bit.
+Three different frequencies appear in this repository and only one of them is the
+design's. This table is here so they cannot be confused.
 
-`engine_signmag` and `engine_wallace` share the same 3:2 reduction tree and the same
-final adder. They differ only in operand encoding. So the gap between them is the
-encoding and nothing else.
+| Candidate | Netlist worst path | Limited by | Datapath path | Routed Fmax (slow) | Routed Fmax (typical) |
+|---|---|---|---|---|---|
+| `engine_infer` | 30.38 ns | `acc_clear_i` | 10.06 ns | not routed | not routed |
+| `engine_wallace` | 30.38 ns | `acc_clear_i` | 10.46 ns | not routed | not routed |
+| `engine_booth4` | 30.39 ns | `acc_clear_i` | 11.85 ns | not routed | not routed |
+| `engine_signmag` | 30.39 ns | `acc_clear_i` | 12.08 ns | not routed | not routed |
+| `engine_bitserial` | 66.24 ns | `_25522_` | 12.24 ns | 67.0 MHz | 90.8 MHz |
+
+The first version of this measurement reported 32.9 MHz for four different multiplier
+microarchitectures, within 15 picoseconds of each other. Four different multipliers
+cannot have the same critical path. Two things were wrong, and both are worth knowing
+about because the wrong number looks entirely plausible:
+
+**Unconstrained inputs are invisible.** The SDC constrained the control ports but not
+`a_tile_i` or `b_tile_i`. An input with no arrival time has no setup requirement, so
+every path through the multiplier array was excluded from the analysis. What was being
+timed was the control logic.
+
+**A Yosys netlist has no buffering.** `acc_clear_i` reaches all 512 accumulator
+flip-flops through one gate, which then takes 21 ns to drive them. That path is identical
+in every candidate because the accumulator bank is shared, which is exactly why the four
+numbers agreed. It is still the limiting path in the synthesis column above, and it is
+why that column is not a frequency.
+
+Place and route fixes this properly by buffering the net, which is why the routed number
+is the design's and the synthesis number is not.
+
+### The sign-magnitude result
+
+Candidate 3 exists to test one claim: that converting operands from two's complement to
+sign-magnitude before the multiplier array reduces switching activity, because in two's
+complement a value crossing zero flips every high-order bit while in sign-magnitude it
+flips one sign bit and leaves the magnitude alone.
+
+The chip can now answer that in watts rather than in transition counts. Both engines are
+synthesised to real SG13G2 cells, simulated under the identical operand stream, and their
+power annotated from the VCD of that run at full coverage.
+
+![Power against operand sign mix](docs/img/power_vs_signs_real.png)
+
+| Negative operands | wallace | signmag | Total power | Switching power | Transition count (proxy) |
+|---|---|---|---|---|---|
+| 0% | 3.908 mW | 4.072 mW | **+4.2%** | +6.8% | +7.9% |
+| 25% | 4.618 mW | 4.437 mW | **-3.9%** | -6.1% | -8.6% |
+| 50% | 4.966 mW | 4.554 mW | **-8.3%** | -13.1% | -17.2% |
+| 75% | 4.958 mW | 4.440 mW | **-10.4%** | -16.2% | -22.2% |
+| 100% | 4.717 mW | 4.078 mW | **-13.5%** | -21.5% | -28.6% |
+
+**The hypothesis is confirmed in direction and substantially overstated in size, and it
+is false at the one operating point most likely to matter.**
+
+Taking those in order.
+
+The mechanism is real. Sign-magnitude saves switching power, the saving grows
+monotonically with the fraction of negative operands, and at an all-negative stream it
+reaches 21.5 percent of switching power. The underlying effect is visible directly:
+`engine_wallace` power rises 27 percent from an all-positive stream to its peak, which is
+the two's complement sign extension cost, while `engine_signmag` rises only 12 percent.
+That divergence is precisely what the candidate was built to detect.
+
+The size is smaller than an activity-only study would claim. Switching power is not total
+power. The converters and the wider magnitude datapath add internal and leakage power
+that no transition count sees, so the 21.5 percent saving on switching power becomes 13.5
+percent on total power, and the proxy's 28.6 percent becomes 13.5 percent. **A study that
+stopped at transition counts would have overstated the benefit by a factor of two.**
+
+And it loses where it probably matters most. At an all-positive operand stream
+sign-magnitude **costs 4.2 percent**. The conversion hardware is pure overhead when no
+sign ever changes. The crossover is near 13 percent negatives by linear interpolation
+between the first two rows, so the encoding is a win for signed weights and activations
+that straddle zero, and a loss for a post-ReLU unsigned activation stream. Post-ReLU
+unsigned activations are extremely common in exactly the inference workloads an INT8
+accelerator is built for.
+
+The honest summary: sign-magnitude encoding is worth about 13 percent of total power on
+signed data, nothing like the 29 percent a transition count suggests, and it is a net
+loss on unsigned data. Whether to use it is a question about your operand statistics, not
+a question with one answer. That distinction does not survive a single-number benchmark,
+which is why the sweep exists.
 
 ![Activity against operand sign mix](docs/img/activity_vs_signs.png)
 
-Gate level bit transitions per tile, 48 tile launches per point, identical operand
-streams across candidates:
+The transition-count sweep behind the last column, kept because it gives a per-module
+breakdown that a power number does not:
 
 | Negative operands | infer | wallace | booth4 | signmag | bitserial | signmag vs wallace |
 |---|---|---|---|---|---|---|
-| 0.0% | 8,772 | 9,816 | 10,861 | 10,594 | 18,683 | **+7.9%** |
-| 24.7% | 11,858 | 12,912 | 12,301 | 11,808 | 23,736 | **-8.6%** |
-| 50.1% | 13,251 | 14,630 | 12,698 | 12,118 | 25,561 | **-17.2%** |
-| 73.8% | 13,712 | 15,210 | 12,459 | 11,827 | 25,365 | **-22.2%** |
-| 100.0% | 13,570 | 14,846 | 11,164 | 10,607 | 23,424 | **-28.6%** |
-
-**The hypothesis holds, with one honest caveat.** Sign-magnitude encoding cuts
-switching activity by 8.6 to 28.6 percent against the identical two's complement
-datapath, and the saving grows with the fraction of negative operands, exactly as the
-mechanism predicts. At 25 percent negatives and above, `engine_signmag` is the
-lowest-activity candidate on the chip.
-
-The caveat: when every operand is non-negative, sign-magnitude **costs** 7.9 percent.
-The converters and the extra magnitude bit are pure overhead when no sign ever
-changes. So the encoding is a win for signed activations and weights that straddle
-zero, and a loss for a post-ReLU unsigned stream. That distinction does not appear in
-a single-number benchmark, which is why the sweep exists.
-
-The mechanism is visible directly in the numbers. `engine_wallace` activity rises 51
-percent from an all-positive stream to an all-negative one (9,816 to 14,846), which is
-the two's complement sign extension cost. `engine_signmag` is nearly flat, peaking
-only 14 percent above its minimum. That divergence is the effect the candidate was
-built to measure.
+| 0.0% | 8,772 | 9,816 | 10,861 | 10,594 | 18,683 | +7.9% |
+| 24.7% | 11,858 | 12,912 | 12,301 | 11,808 | 23,736 | -8.6% |
+| 50.1% | 13,251 | 14,630 | 12,698 | 12,118 | 25,561 | -17.2% |
+| 73.8% | 13,712 | 15,210 | 12,459 | 11,827 | 25,365 | -22.2% |
+| 100.0% | 13,570 | 14,846 | 11,164 | 10,607 | 23,424 | -28.6% |
 
 ![Activity totals](docs/img/activity_totals.png)
 
 ![Per-module activity](docs/img/activity_modules.png)
 
-The Pareto view the chip exists to produce:
+### Does the cheap proxy predict real power?
 
-![Area against switching activity](docs/img/ppa_pareto.png)
+Counting bit transitions in a VCD is nearly free and needs no PDK. Annotated power needs
+a liberty file, a gate level netlist and a signoff tool. If the free measurement predicts
+the expensive one, most of this analysis is reproducible by anyone. So it is worth
+checking directly rather than assuming.
 
-Reading it: `engine_booth4` and `engine_signmag` are the two candidates on the
-frontier. Booth is smaller, sign-magnitude is quieter, and which one you want depends
-on whether your operands cross zero. `engine_wallace` is dominated on both axes and is
-not worth building. `engine_bitserial` is off the frontier on activity but wins area
-by a factor of three, which is the right trade when area is the binding constraint and
-1.9 times the latency is acceptable.
+![Proxy against measured power](docs/img/power_proxy_vs_real.png)
 
-**This is a switching-activity proxy, not power.** It counts bit transitions on gate
-level nets weighted by Hamming distance. It weights every net equally regardless of
-capacitance, does not capture glitch power (the gate level simulation has zero cell
-delays, which systematically favours deep combinational designs), and ignores clock
-tree, memory and leakage entirely. It is a relative ranking under a fixed workload,
-which is the question that matters when choosing between candidates, and it is not
-watts. The full list of biases is in
-[docs/PPA_METHODOLOGY.md](docs/PPA_METHODOLOGY.md#what-the-proxy-does-not-tell-you).
+**For ranking candidates by energy per tile, the proxy is excellent.** Across all five
+candidates the rank correlation between transitions per tile and measured energy per tile
+is exactly 1.00, and the linear correlation is 0.99. Every candidate lands in the right
+order. If the question is "which of these should I build", the free measurement answers
+it.
+
+**For predicting how much better, the proxy is poor, and it errs in both directions.**
+Relative to `engine_wallace`:
+
+| Candidate | Proxy says | Measured energy says | Proxy error |
+|---|---|---|---|
+| `engine_infer` | 0.91x | 0.97x | overstates the saving |
+| `engine_booth4` | 0.87x | 0.94x | overstates the saving |
+| `engine_signmag` | 0.83x | 0.92x | overstates the saving by about 2x |
+| `engine_bitserial` | 1.75x | 3.17x | understates the cost by about 1.8x |
+
+The two failure modes have the same root cause. The proxy weights every net equally and
+sees no cell internals, so it misses the internal power that dominates in a
+register-heavy design and it cannot see that a wide flat tree and a narrow deep one drive
+very different capacitances. For the encodings it therefore flatters the quiet candidate;
+for the bit-serial candidate, which spends eight cycles and a great deal of sequential
+activity per tile, it badly understates the cost.
+
+**And for average power the proxy is worthless.** Its rank correlation with average power
+across the five candidates is 0.00. That is not a defect in the proxy so much as a
+warning about the question: `engine_bitserial` spreads the same work over eight cycles,
+so it draws the *lowest* average power of any candidate while consuming over three times
+the energy per tile. Average power rewards being slow. Energy per tile is the comparison
+that means something, and it is the one this repository quotes.
+
+The practical guidance, for anyone who cannot run place and route: use the transition
+count to rank designs of similar structure, do not quote its percentages, and never use
+it to compare designs with different cycle counts.
+
+### The Pareto view
+
+![Die area against measured energy](docs/img/ppa_pareto_real.png)
+
+Both axes are physical: routed die area against energy per tile launch. Energy rather
+than power, for the reason above.
 
 ### Whole chip
 
@@ -195,32 +392,22 @@ watts. The full list of biases is in
 | `bench_core` | 412,685 | 85,577 |
 | `gemm_bench_chip` | 412,687 | 85,577 |
 
-`engine_array` is 232,071 cells against 174,298 for the five candidates on their own.
-The 58,000 cell difference is the clock gating and operand isolation that makes the
+`engine_array` is 232,071 cells against 174,298 for the five candidates on their own. The
+58,000 cell difference is the clock gating and operand isolation that makes the
 measurement valid, charged to shared logic rather than to any candidate. A production
 accelerator with one datapath would not pay it.
 
 The flip-flop count jumps at `bench_core` because Yosys maps the four matrix stores
-(74 kbit in total) to flip-flops: this build binds no SRAM macros. A macro-backed
-build replaces those with four compiled SRAM cuts at a fraction of the area.
+(74 kbit in total) to flip-flops: this build binds no SRAM macros. A macro-backed build
+replaces those with four compiled SRAM cuts at a fraction of the area.
 `rtl/lib/sram_1rw.sv` is the binding point.
 
 ![Area estimate](docs/img/floorplan_estimate.png)
 
-**That figure is an area estimate, not a layout.** The block sizes are proportional to
-synthesised cell counts and the positions are arbitrary.
-
-Place and route was attempted, on one candidate, and got most of the way. With
-OpenROAD 26Q3 and the SG13G2 standard cell views, `engine_booth4` floorplans to an
-**878 um square die at 45.2 percent core utilisation with 30,389 instances**, places
-legally, gets a clock tree, and closes timing at the 20 ns target with **no setup and no
-hold violations**. Detailed routing does not complete: `launch_i` reaches all 512
-accumulator registers as one net and the block SDC had no fanout limit, so the resizer
-never buffered it. That fix is now in the script but the corrected run has not been
-completed here, so **there is no GDS and no routed area number in this repository**, and
-the whole-chip sequence with its pad ring and SRAM macros has never been run at all.
-Five real bugs in the flow were found by running it. The full account is in
-[what has and has not been run](docs/PPA_METHODOLOGY.md#what-has-and-has-not-been-run).
+**That figure is an area estimate, not a layout.** Block sizes are proportional to
+synthesised cell counts and the positions are arbitrary. The real layouts are the contact
+sheets above. The whole-chip flow, with its pad ring and SRAM macros, has never been run:
+every routed number here is a candidate, not the chip.
 
 ---
 
@@ -241,19 +428,25 @@ Everything below genuinely ran, on Icarus Verilog 12.0 through cocotb 2.0.1.
 | Verilator lint | 0 warnings | `-Wall` on the chip with no waivers of any kind, and on the engine harness with `UNUSEDPARAM` waived because that verification-only top uses none of the host-interface constants |
 | Yosys synthesis | pass | 8 tops, no inferred latches, `check -assert` clean, no blackboxes |
 | Gate level equivalence | pass | all five synthesised netlists checked against a reference before their activity is counted |
+| Post-route functional | pass | LibreLane's final netlist, the one the GDS was streamed from, simulated against the reference model with the PDK's own cell models |
 
-Total: 49 cocotb tests, all passing. The two slowest suites (`test_tiling` at 20
-minutes and `test_reset_gating` at 12 minutes on Icarus) are what make `make sim` a
-coffee break rather than a keystroke; `make sim-quick` is the reduced sweep CI runs.
+Total: 49 cocotb tests, all passing.
+
+That last row matters more than its size suggests. A power number taken from a netlist
+that computes the wrong answer is worthless, so `tools/verify_routed.py` checks every
+output element of every tile against NumPy on the routed netlist *before* its activity is
+counted, and reports its annotation coverage so a partly-synthetic number cannot pass as
+a measured one.
 
 ```bash
-make lint      # Verilator -Wall, must be zero warnings
-make sim       # the full suite
-make sim-quick # reduced sweep, what CI runs
+make lint          # Verilator -Wall, must be zero warnings
+make sim           # the full suite
+make sim-quick     # reduced sweep, what CI runs
+make verify-routed # simulate the routed netlist and measure its power
 ```
 
-The reference model is NumPy with an explicit INT64 accumulator wrapped to INT32. It
-does not mirror RTL structure, so a shared misunderstanding cannot make a test pass.
+The reference model is NumPy with an explicit INT64 accumulator wrapped to INT32. It does
+not mirror RTL structure, so a shared misunderstanding cannot make a test pass.
 Cross-candidate equivalence is checked separately, because a common-mode error in the
 model would pass every comparison against it. The full plan is in
 [docs/VERIFICATION_PLAN.md](docs/VERIFICATION_PLAN.md).
@@ -268,17 +461,17 @@ single-clock and there is no clock domain crossing to verify.
 
 ![SPI frame timing](docs/img/spi_frame_timing.svg)
 
-That waveform is a real captured frame: `test_capture_timing_trace` samples the pins
-on every core clock edge and writes `results/trace/spi_frame.json`, and the figure is
-drawn from that file.
+That waveform is a real captured frame: `test_capture_timing_trace` samples the pins on
+every core clock edge and writes `results/trace/spi_frame.json`, and the figure is drawn
+from that file.
 
 ![Memory map](docs/img/memory_map.svg)
 
 Fifteen opcodes cover loading operands and a golden reference, selecting a candidate,
-clearing, triggering, verifying, reading the result, reading the performance counters
-and the status byte, geometry discovery, and a keyed soft reset. Errors are reported
-rather than swallowed: unknown opcodes, out-of-range addresses, truncated frames and
-commands issued while busy all set sticky status bits. Full table in
+clearing, triggering, verifying, reading the result, reading the performance counters and
+the status byte, geometry discovery, and a keyed soft reset. Errors are reported rather
+than swallowed: unknown opcodes, out-of-range addresses, truncated frames and commands
+issued while busy all set sticky status bits. Full table in
 [docs/MEMORY_MAP.md](docs/MEMORY_MAP.md).
 
 `OP_RD_CFG` returns the build's geometry, so host tooling sizes its transfers from the
@@ -291,20 +484,47 @@ does not need to change its host software.
 
 ![Output-stationary dataflow](docs/img/dataflow_output_stationary.svg)
 
-One trigger runs the whole product. The accumulator for each output tile stays
-resident while all `GRID_K` K-tiles stream through it, so no partial sum ever leaves
-the accumulator registers.
+One trigger runs the whole product. The accumulator for each output tile stays resident
+while all `GRID_K` K-tiles stream through it, so no partial sum ever leaves the
+accumulator registers.
 
 The operand SRAM words are cut so that one word is exactly the slice of a matrix row a
-tile fetch needs, which makes a tile fetch `TILE_M` (or `TILE_K`) single-port reads
-rather than one implausibly wide access. Five of the seven cycles per K-tile are
-operand fetch, and that cost is real: a design that pretends a single-port SRAM has a
-wide port measures a memory system that cannot be built.
+tile fetch needs, which makes a tile fetch `TILE_M` (or `TILE_K`) single-port reads rather
+than one implausibly wide access. Five of the seven cycles per K-tile are operand fetch,
+and that cost is real: a design that pretends a single-port SRAM has a wide port measures
+a memory system that cannot be built.
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the rest.
 
 ---
 
-## Getting started
+## Adding your own candidate
+
+This repository is a harness, and dropping a sixth microarchitecture into it is meant to
+be mechanical. Five files change and nothing else in the design needs to know your
+candidate exists.
+
+```bash
+cp rtl/engines/engine_template.sv rtl/engines/engine_mine.sv
+sed -i 's/engine_template/engine_mine/' rtl/engines/engine_mine.sv
+make lint-template          # the skeleton is kept lint clean on purpose
+```
+
+`rtl/engines/engine_template.sv` is a complete, lint-clean, working single-cycle candidate
+with the arithmetic factored out behind a marked block. It is deliberately absent from
+`rtl/filelist.f`, so it never reaches a measurement until you add it. As written it
+computes the right answer with an inferred multiply, which means it will pass every
+correctness test and tell you nothing: the point is to start from a known-good baseline
+rather than from a blank file.
+
+Once it is in the filelist, every measurement in this README applies to it automatically:
+the test suite will check it against the reference model and against every other
+candidate, the sweeps will include it, and `tools/run_pnr.py` will route it at the same
+constraint as everything else. The full contract, including the exact port list and the
+five files, is in [docs/ADDING_A_CANDIDATE.md](docs/ADDING_A_CANDIDATE.md).
+
+---
+
+## Running everything
 
 ```bash
 git clone https://github.com/danieltyukov/matmul-ppa-testchip.git
@@ -316,36 +536,50 @@ make synth power    # area and the switching-activity proxy
 make images         # regenerate every figure from results/
 ```
 
-Needed, and verified working: Verilator 5.020 (lint), Icarus Verilog 12.0
-(simulation), Yosys 0.33 (synthesis), Python 3.12.
+Needed, and verified working: Verilator 5.020 (lint), Icarus Verilog 12.0 (simulation),
+Yosys 0.33 (synthesis), Python 3.12.
 
-Verilator would be the faster cocotb backend, but cocotb 2.0 requires Verilator 5.036
-and the toolchain here is 5.020, so Icarus runs the tests and Verilator does lint.
-Setting `SIM=verilator` in `tb/Makefile` is the only change needed once a newer
-Verilator is available.
+Verilator would be the faster cocotb backend, but cocotb 2.0 requires Verilator 5.036 and
+the toolchain here is 5.020, so Icarus runs the tests and Verilator does lint. Setting
+`SIM=verilator` in `tb/Makefile` is the only change needed once a newer Verilator is
+available.
 
-### What needs the IHP PDK
-
-| Target | Needs the PDK | Status here |
-|---|---|---|
-| `make lint` | no | run, zero warnings |
-| `make sim` | no | run |
-| `make synth` | no | run, reports committed |
-| `make power` | no | run, results committed |
-| `make images` | no | run, figures committed |
-| `make synth-pdk` | yes, `SG13G2_LIB` | run, results committed under `results/synth/sg13g2/` |
-| `make -C flow block` | yes, plus OpenROAD | **partly run on one candidate: through clock tree synthesis and timing closure with no violations, detailed routing did not complete** |
-| `make flow` (whole chip) | yes, plus OpenROAD | **not run** |
+### With the IHP PDK
 
 ```bash
 tools/fetch_pdk.sh        # sparse clone of the views the flow needs
 source pdk/env.sh
 make synth-pdk            # real cell area in square micrometres
-make flow                 # place and route, untested here
+make pdk-ppa              # path delay and watts with real switching activity
+make pnr                  # place and route every candidate to a signed-off GDS
+make verify-routed        # simulate the routed netlist, measure its power
+make layout               # render the GDS and build the contact sheets
 ```
 
 `tools/fetch_pdk.sh` does not vendor the PDK. It is a large Apache-2.0 third-party
 artefact with its own release cadence, and a committed copy would go stale.
+
+`make pnr` is the expensive one: a full LibreLane Classic flow per candidate, including
+Magic and KLayout DRC, LVS, antenna, slew and capacitance signoff. Set `PNR_THREADS` to
+suit the machine. The Makefile defaults it from `nproc`, because LibreLane leaves
+`KLAYOUT_DRC_THREADS` and `KLAYOUT_XOR_THREADS` unset and those two stages dominate wall
+time when they run single-threaded.
+
+### What needs the PDK
+
+| Target | Needs the PDK | Status here |
+|---|---|---|
+| `make lint` | no | run, zero warnings |
+| `make sim` | no | run, 49 tests pass |
+| `make synth` | no | run, reports committed |
+| `make power` | no | run, results committed |
+| `make images` | no | run, figures committed |
+| `make synth-pdk` | yes | run, results committed under `results/synth/sg13g2/` |
+| `make pdk-ppa` | yes | run, results committed under `results/pdk/` |
+| `make pnr` | yes, plus LibreLane | run, results committed under `results/pnr/` |
+| `make verify-routed` | yes, plus LibreLane | run, results committed |
+| `make layout` | yes, plus KLayout | run, renders committed |
+| `make flow` (whole chip) | yes, plus OpenROAD | **not run** |
 
 ---
 
@@ -362,9 +596,10 @@ rtl/
   measure/    cycle_meter, mac_meter, result_checker
   top/        bench_core, pad_frame, gemm_bench_chip
 tb/           cocotb suite, the NumPy reference model, the SPI driver, SV benches
-tools/        synthesis collection, VCD activity proxy, figure generators,
+tools/        synthesis collection, VCD activity proxy, figure generators, the
+              LibreLane driver, the routed-netlist verifier, the GDS renderer,
               and program_chip.py: the host driver for packaged silicon
-flow/         Yosys script and the PDK-gated OpenROAD sequence
+flow/         Yosys script, the PDK-gated OpenROAD sequence, LibreLane configs
 constraints/  clocks, IO and area SDC
 results/      every measurement the README and the figures are built from
 docs/         architecture, memory map, PPA methodology, verification plan,
@@ -373,9 +608,9 @@ docs/         architecture, memory map, PPA methodology, verification plan,
 
 ## Bringing up silicon
 
-`tools/program_chip.py` drives the packaged chip from Linux spidev with the same
-command sequences the tests use, sharing its frame construction with the testbench
-through `tb/gemm_model.py` so a protocol change cannot make the two disagree silently.
+`tools/program_chip.py` drives the packaged chip from Linux spidev with the same command
+sequences the tests use, sharing its frame construction with the testbench through
+`tb/gemm_model.py` so a protocol change cannot make the two disagree silently.
 
 ```bash
 tools/program_chip.py info                    # identify the chip, report its geometry
@@ -400,23 +635,28 @@ It has never been run against silicon, because nothing has been fabricated.
 Collected in one place, because a benchmark repository that overstates its numbers is
 worse than no benchmark at all.
 
-- **No layout exists.** Place and route was run on one candidate through clock tree
-  synthesis and timing closure, but detailed routing did not complete, so there is no
-  GDS. `docs/img/floorplan_estimate.png` is a cell-count treemap, labelled as an
-  estimate on its face.
-- **Yosys generic cell counts are not PDK area.** They are unit-cost gates. Gate
-  equivalents weight them by static CMOS transistor counts, which is technology
-  independent and still not area.
-- **The SG13G2 numbers are real cell area and still not die area.** They exclude
-  routing, filler, tap cells, the power grid and the pad frame, all of which place and
-  route adds.
-- **Logic depth is a gate count, not a delay.** No cell timing is involved.
-- **The power number is a transition count, not watts.** Its known biases are listed in
-  the methodology document, with glitch power called out as the largest.
-- **The 50 MHz clock target in the SDC is not a measured maximum frequency.** One
-  candidate met it with no violations after clock tree synthesis on placement-estimated
-  parasitics. That is not a routed timing result and it says nothing about the chip.
-- **Nothing has been fabricated.**
+- **Nothing has been fabricated.** The layouts are routed GDS from LibreLane, signed off
+  against DRC and LVS. No mask has been made and no silicon exists.
+- **The whole-chip flow has never been run.** Every routed number here is a candidate
+  block. `gemm_bench_chip`, with its pad ring and SRAM macros, has not been through place
+  and route at all.
+- **Synthesis area and routed area are different numbers** and are labelled apart
+  everywhere. Yosys generic cell counts are not PDK area; PDK cell area is not die area.
+- **Gate equivalents are not area, and logic depth is not delay.** Both are counts.
+- **The synthesis frequency column is not a frequency.** It is limited by an unbuffered
+  512-load net that place and route removes, and it is included only to show that.
+- **A transition count is not power.** Where both exist they are reported side by side,
+  and they disagree by about a factor of two on the headline comparison. The proxy's
+  biases, glitch power chief among them, are listed in the methodology document.
+- **The gate level simulation is zero-delay,** at synthesis and after routing, because
+  Icarus needs the PDK's specify blocks stripped. No glitch power is counted anywhere in
+  this repository, which systematically flatters deep combinational designs.
+- **`power__total` in `results/pnr/summary.json` is not measured power.** It is
+  OpenROAD's estimate at its default switching activity, roughly five times the annotated
+  figure. The measured number is in `results/pnr/routed_power.json`.
+- **The sign-magnitude result is a qualified one.** It is a 13.5 percent total-power win
+  on all-negative operands, a 4.2 percent loss on all-positive ones, and roughly half
+  what a transition-count study would have claimed.
 
 ## Licence
 
