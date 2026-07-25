@@ -199,6 +199,12 @@ pnr: venv
 layout: venv
 	$(VENV_PY) tools/render_gds.py
 
+# Simulate LibreLane's final netlist against the reference model and measure its
+# power with the parasitics extracted from the routing. This is the only power
+# number in the repository taken on the netlist the GDS was streamed from.
+verify-routed: venv
+	$(VENV_PY) tools/verify_routed.py
+
 # ---------------------------------------------------------------------------
 # Figures
 # ---------------------------------------------------------------------------
@@ -220,12 +226,12 @@ report: venv
 	$(VENV_PY) tools/report_summary.py
 
 # ---------------------------------------------------------------------------
-# Place and route
+# Whole-chip flow
 #
-# Gated on the IHP PDK and OpenROAD, neither of which is installed in the
-# environment this repository was developed in. The scripts and constraints are
-# complete and committed; see docs/PPA_METHODOLOGY.md for exactly what has and has
-# not been run.
+# The hand-written OpenROAD sequence for gemm_bench_chip, with its pad ring and SRAM
+# macros. Gated on the IHP PDK and OpenROAD. Unlike `make pnr`, which routes the
+# candidates and has been run, this sequence has never completed; see
+# docs/PPA_METHODOLOGY.md for exactly what has and has not been run.
 # ---------------------------------------------------------------------------
 flow:
 	$(MAKE) -C flow all

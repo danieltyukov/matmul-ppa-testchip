@@ -132,6 +132,32 @@ so these are comparable across candidates. Closing each candidate at its own bes
 instead would measure each one under a different amount of optimisation pressure, which
 is exactly the confound this chip exists to remove.
 
+### Routed power: two numbers that are not the same number
+
+`results/pnr/summary.json` and `results/pnr/routed_power.json` both report watts after
+routing, and they answer different questions. Quoting one for the other is the easiest
+mistake to make here.
+
+- `power__total` in `summary.json` is what OpenROAD reports during the flow, at its
+  **default switching activity**. Nothing is annotated from a workload. It is a bound
+  the flow produces for free, it is roughly five times the measured figure, and it
+  should be read as an upper bound rather than as this design's power.
+- `results/pnr/routed_power.json` is the measured one. `tools/verify_routed.py`
+  simulates LibreLane's final netlist, the one the GDS was streamed from, against the
+  reference model, and annotates power from the VCD of that run with the parasitics
+  extracted from the routing. Real cells, real wire capacitance, real workload, and the
+  clock tree included because by then it exists.
+
+That second number carries a `functional` field, and it is not decoration. A power
+figure taken from a netlist that computes the wrong answer is worthless, so the same
+run checks every output element of every tile against NumPy before its activity is
+counted. It also reports annotation coverage; anything below 1.0 means some pins fell
+back to a default and the number is partly synthetic.
+
+The zero-delay caveat survives routing. Icarus needs the PDK's specify blocks stripped
+to parse the cell models, so the post-route simulation is still zero-delay and still
+counts no glitch. This remains the largest known bias in every power number here.
+
 ---
 
 ## Timing, and a trap worth documenting
