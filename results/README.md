@@ -26,6 +26,37 @@ make layout     # docs/img/layout_*.png, rendered from that GDS
 `make report` prints the tables as markdown, which is how the README numbers were
 checked.
 
+## What is measured for what
+
+Not every scope carries every measurement, and the gaps are deliberate rather than
+pending. This is the map.
+
+| Scope | Generic synth | SG13G2 synth | PDK timing and power | Place and route | Routed power |
+|---|---|---|---|---|---|
+| `engine_infer` | yes | yes | yes | running | no |
+| `engine_wallace` | yes | yes | yes | running | no |
+| `engine_booth4` | yes | yes | yes | running | no |
+| `engine_signmag` | yes | yes | yes | running | no |
+| `engine_bitserial` | yes | yes | yes | yes | yes |
+| `engine_array` | yes | no | no | no | no |
+| `bench_core` | yes | no | no | no | no |
+| `gemm_bench_chip` | yes | no | no | no | no |
+
+"running" means the LibreLane flow for that candidate is in progress at the same
+constraint as `engine_bitserial` and its row lands in `summary.json` when it finishes.
+No number appears in this repository before its flow has run.
+
+The three integration scopes stop at generic synthesis for one reason: this build binds
+no SRAM macros, so `memory_map` turns 74 kbit of matrix store into flip-flops. Their
+SG13G2 area would be the area of a design nobody would build, and routing them would
+measure that same design more expensively. The candidates contain no memory, so they are
+unaffected and they are what every physical number here describes.
+
+`engine_array` is the one scope where that argument does not apply, since it holds no
+memory either. It has a LibreLane configuration in `flow/librelane/engine_array/` and it
+has not been routed: at 232,071 cells it is an order of magnitude more flow time than a
+single candidate, and it answers a different question from the one this chip is for.
+
 ## synth/
 
 Yosys reports. Produced by `tools/synth_collect.py`, which drives
