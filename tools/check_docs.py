@@ -13,17 +13,33 @@ for the headings this repository uses.
 
 External links are not fetched: that would make the check depend on the network and on
 other people's uptime.
+
+A target that exists on disk but is not committed is reported as a problem rather than
+passed. CI checks out the commit, so an uncommitted figure resolves locally and 404s for
+everyone else, which is exactly the rot this check exists to catch. Outside a git work
+tree the check falls back to plain existence.
 """
 
 from __future__ import annotations
 
 import pathlib
 import re
+import subprocess
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 HEADING_RE = re.compile(r"^#{1,6}\s+(.*?)\s*$", re.M)
+
+
+def tracked_files() -> set[pathlib.Path] | None:
+    """Every path git knows about, or None outside a work tree."""
+    try:
+        out = subprocess.run(["git", "-C", str(REPO), "ls-files", "-z"],
+                             capture_output=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return {REPO / p.decode() for p in out.split(b"\0") if p}
 
 
 def slugify(heading: str) -> str:
@@ -40,8 +56,14 @@ def headings(path: pathlib.Path) -> set[str]:
 
 def main() -> int:
     problems: list[str] = []
+    tracked = tracked_files()
     files = sorted(REPO.rglob("*.md"))
     files = [f for f in files if ".venv" not in f.parts and "build" not in f.parts]
+    # Markdown that git ignores is generated output, and the run directories under
+    # flow/librelane hold several of them. Checking those reported a different file
+    # count locally than in CI, which made the two runs hard to compare.
+    if tracked is not None:
+        files = [f for f in files if f in tracked]
     checked = 0
 
     for path in files:
@@ -58,6 +80,9 @@ def main() -> int:
                 resolved = (path.parent / target).resolve()
                 if not resolved.exists():
                     problems.append(f"{rel}: missing target {target}")
+                    continue
+                if tracked is not None and resolved.is_file() and resolved not in tracked:
+                    problems.append(f"{rel}: {target} exists but is not committed")
                     continue
             else:
                 resolved = path
