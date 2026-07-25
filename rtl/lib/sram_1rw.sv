@@ -16,9 +16,7 @@
 
 module sram_1rw #(
   parameter int unsigned WORDS  = 256,
-  parameter int unsigned WORD_W = 32,
-  // Set for the macro-backed build so the wrapper knows its instance name.
-  parameter              MACRO_NAME = "behavioural"
+  parameter int unsigned WORD_W = 32
 ) (
   input  logic                      clk_i,
   input  logic                      rst_ni,

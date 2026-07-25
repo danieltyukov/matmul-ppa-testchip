@@ -41,17 +41,6 @@ package gemm_pkg;
   parameter int unsigned GRID_N = MAT_N / TILE_N;
   parameter int unsigned GRID_K = MAT_K / TILE_K;
 
-  parameter int unsigned GRID_M_W = (GRID_M > 1) ? $clog2(GRID_M) : 1;
-  parameter int unsigned GRID_N_W = (GRID_N > 1) ? $clog2(GRID_N) : 1;
-  parameter int unsigned GRID_K_W = (GRID_K > 1) ? $clog2(GRID_K) : 1;
-
-  // ---------------------------------------------------------------------------
-  // Flattened tile vector widths
-  // ---------------------------------------------------------------------------
-  parameter int unsigned A_TILE_W = TILE_M * TILE_K * OPERAND_W;
-  parameter int unsigned B_TILE_W = TILE_K * TILE_N * OPERAND_W;
-  parameter int unsigned C_TILE_W = TILE_M * TILE_N * ACC_W;
-
   // ---------------------------------------------------------------------------
   // Engine roster. Adding a candidate means bumping ENGINE_COUNT and adding an
   // instance in engine_array.sv. See docs/ADDING_A_CANDIDATE.md.
@@ -83,16 +72,13 @@ package gemm_pkg;
   // slice of a matrix row that a tile fetch needs. A tile fetch is therefore
   // TILE_M (for A) or TILE_K (for B) single-port reads, not a magic wide port.
   // ---------------------------------------------------------------------------
-  parameter int unsigned A_WORD_W  = TILE_K * OPERAND_W;      // one A row slice
-  parameter int unsigned A_WORDS   = MAT_M * GRID_K;
-  parameter int unsigned B_WORD_W  = TILE_N * OPERAND_W;      // one B row slice
-  parameter int unsigned B_WORDS   = MAT_K * GRID_N;
-  parameter int unsigned C_WORD_W  = TILE_N * ACC_W;          // one C row slice
-  parameter int unsigned C_WORDS   = MAT_M * GRID_N;
-
-  parameter int unsigned A_ADDR_W = $clog2(A_WORDS);
-  parameter int unsigned B_ADDR_W = $clog2(B_WORDS);
-  parameter int unsigned C_ADDR_W = $clog2(C_WORDS);
+  // Word widths, which each block derives from its own TILE_* parameters:
+  //   A word = TILE_K * OPERAND_W    one TILE_K wide slice of an A row
+  //   B word = TILE_N * OPERAND_W    one TILE_N wide slice of a B row
+  //   C word = TILE_N * ACC_W        one TILE_N wide slice of a C row
+  parameter int unsigned A_WORDS = MAT_M * GRID_K;
+  parameter int unsigned B_WORDS = MAT_K * GRID_N;
+  parameter int unsigned C_WORDS = MAT_M * GRID_N;
 
   // Byte counts as seen from the host address space.
   parameter int unsigned A_BYTES = MAT_M * MAT_K;
@@ -103,9 +89,13 @@ package gemm_pkg;
   // Host (SPI) interface
   // ---------------------------------------------------------------------------
   parameter int unsigned HOST_ADDR_W = 16;   // two address bytes per frame
-  parameter int unsigned PERF_BYTES  = 12;   // cycles, macs, mismatches, first
-  parameter int unsigned CFG_BYTES   = 10;   // geometry discovery payload
-  parameter int unsigned ID_BYTES    = 4;
+
+  // Readback payload lengths. frame_router returns zero past the end of each, so
+  // a controller that over-clocks a register read gets zeros rather than aliased
+  // bytes from the start of the value.
+  parameter int unsigned PERF_BYTES = 12;   // cycles, macs, mismatches, first
+  parameter int unsigned CFG_BYTES  = 10;   // geometry discovery payload
+  parameter int unsigned ID_BYTES   = 4;
 
   // Chip identification returned by OP_RD_ID: ASCII "MP" then major.minor.
   parameter logic [31:0] CHIP_ID = 32'h4D50_0102;
