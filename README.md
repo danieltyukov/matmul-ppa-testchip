@@ -96,25 +96,70 @@ from LibreLane's own `final/metrics.json` after routing, not from synthesis. Pow
 measured on the netlist the GDS was streamed from, with parasitics extracted from the
 routing.
 
-| Candidate | Routed cell area | Die area | Post-route Fmax | Power | Energy/tile |
+| Candidate | Routed cell area | Die area | Post-route Fmax | Power | Energy/tile | Cycles |
+|---|---|---|---|---|---|---|
+| `engine_infer` | 443,933 um2 | 0.939 mm2 | 81.4 MHz | 8.73 mW | 446 pJ | 3,904 |
+| `engine_wallace` | still routing | still routing | still routing | still routing | still routing | 3,904 |
+| `engine_booth4` | **383,415 um2** | **0.796 mm2** | **83.0 MHz** | **8.21 mW** | **419 pJ** | 3,904 |
+| `engine_signmag` | 394,146 um2 | 0.819 mm2 | 69.2 MHz | 8.41 mW | 429 pJ | 3,904 |
+| `engine_bitserial` | 185,463 um2 | 0.356 mm2 | 77.3 MHz | 6.51 mW | 1,245 pJ | 7,488 |
+
+Every routed candidate is clean: 0 Magic DRC errors, 0 KLayout DRC errors, 0 LVS errors
+and 0 routing DRC violations, with positive hold slack at every corner. A handful of
+antenna violations survive (1 on bit-serial, 9 on infer, 21 on Booth), and they are
+reported rather than swept up. `engine_wallace` is still in place and route as this is
+written; its row appears when its flow finishes, and nothing is estimated in the
+meantime.
+
+**Booth recoding wins the routed comparison outright.** Among the four single-cycle
+candidates it is simultaneously the smallest die, the fastest at signoff and the lowest
+energy per tile. That is unusual: area, speed and energy normally trade against each
+other, and halving the partial product count improves all three at once.
+
+**Sign-magnitude does not come out ahead once the design is routed.** `engine_signmag`
+costs 2.4 percent more energy per tile than Booth and is 17 percent slower at signoff,
+69.2 MHz against 83.0 MHz. The encoding's extra logic depth shows up as frequency, which
+a synthesis-stage power sweep cannot see. The controlled comparison against
+`engine_wallace`, which shares its reduction tree, is the one that isolates the encoding,
+and it needs the Wallace route to finish.
+
+`engine_bitserial` draws the lowest power of anything here, 6.51 mW, and that is exactly
+the trap described [below](#does-the-cheap-proxy-predict-real-power): it spends 7,488
+cycles to everyone else's 3,904, so it uses **three times the energy** for the same
+work. Its die is 2.2 times smaller, which is the reason to build it.
+
+Synthesis cell area to routed cell area grows by 13 to 24 percent for three of the four,
+and by only 1.7 percent for `engine_signmag`. The die is then roughly twice the routed
+cell area again at 40 percent target utilisation. Compounding those, a die is 2.1 to 2.4
+times the synthesis cell area, which is why synthesis area should never be quoted as a
+die size.
+
+<details>
+<summary>Per-candidate route detail</summary>
+
+| Candidate | Instances | Utilisation | Wirelength | Synthesis to routed cell growth | Antenna |
 |---|---|---|---|---|---|
-| `engine_bitserial` | 185,381 um2 | 0.356 mm2 | 67.0 MHz | 6.56 mW | 1,254 pJ |
+| `engine_infer` | 90,326 | 49.6% | 1,284 mm | +13.1% | 9 |
+| `engine_booth4` | 75,990 | 50.6% | 1,120 mm | +16.8% | 21 |
+| `engine_signmag` | 78,552 | 50.6% | 1,396 mm | +1.7% | 2 |
+| `engine_bitserial` | 30,628 | 56.1% | 414 mm | +23.7% | 1 |
 
-**Only `engine_bitserial` has completed place and route so far.** The other four
-candidates are routing at the same constraint as this one and their rows land when they
-finish. Nothing in this table is estimated, and no row appears here until its flow has
-run to a signed-off GDS.
+`engine_signmag` routes the most wire of any candidate despite not being the largest,
+which is the operand conversion fanning out across the array.
 
-That candidate routes clean: 0 Magic DRC errors, 0 KLayout DRC errors, 0 LVS errors and 0
-routing DRC violations, on a 588 x 606 um die holding 30,573 instances at 56.1 percent
-utilisation, with 411 mm of wire and 83,533 vias. Hold slack is positive at every corner.
-Three antenna violations and one max-fanout violation remain, which are reported rather
-than swept up.
+</details>
 
-Its 185,381 um2 of routed cells against 149,875 um2 at synthesis is a **24 percent
-growth**, and the die is 1.9 times the routed cell area again. Compounding the two, the
-die is 2.4 times the synthesis cell area, which is the reason synthesis area should never
-be quoted as a die size.
+#### One caveat about repeatability
+
+`engine_bitserial` was routed twice from the identical configuration during this work.
+The two runs gave **67.1 MHz and 77.3 MHz**, a 15 percent spread, from cell areas that
+differed by 0.04 percent. Multi-threaded detailed routing and timing repair are not
+bit-reproducible, and the slack that falls out of them moves more than the area does.
+
+The table quotes the second run, because that is the run whose GDS and netlist are on
+disk and whose power was measured. Treat single-run Fmax differences of a few percent
+between candidates as noise; the 14 MHz gap between Booth and sign-magnitude is larger
+than the spread observed here, and the area numbers are solid either way.
 
 Fmax is `1/(period - worst setup slack)` from signoff STA at `nom_slow_1p08V_125C`, the
 corner a tapeout closes at. That arithmetic is exact rather than approximate because
@@ -140,12 +185,17 @@ the easiest way to overstate a result:
 
 ### What the same function looks like in silicon
 
-The contact sheets are built to hold every candidate at one scale, so that functionally
-equivalent engines through the same flow at the same constraint can be compared as
-pictures rather than as numbers. They currently show the one candidate that has routed,
-and fill in as the rest finish.
+Functionally equivalent engines, the same flow, the same 20 ns constraint, rendered at
+one scale so the size difference is a difference on the page rather than a number in a
+table. `engine_wallace` joins them when its route finishes.
 
 ![Layout contact sheet](docs/img/layout_contact_sheet.png)
+
+The bit-serial engine is the obvious one: a third of the die of anything else, because it
+has no multiplier array at all. Less obvious is `engine_signmag`, whose placed core is
+visibly rounder and less uniform at its edges than Booth's rectangular mat. That is the
+operand conversion logic, which does not tile as regularly as a reduction tree and is the
+same logic that makes it route the most wire of any candidate.
 
 The zoom sheet takes the same physical window of silicon from each candidate at the same
 magnification, which is where the microarchitecture is actually visible rather than just
@@ -240,11 +290,17 @@ design's. This table is here so they cannot be confused.
 
 | Candidate | Netlist worst path | Limited by | Datapath path | Routed Fmax (slow) | Routed Fmax (typical) |
 |---|---|---|---|---|---|
-| `engine_infer` | 30.38 ns | `acc_clear_i` | 10.06 ns | not routed | not routed |
-| `engine_wallace` | 30.38 ns | `acc_clear_i` | 10.46 ns | not routed | not routed |
-| `engine_booth4` | 30.39 ns | `acc_clear_i` | 11.85 ns | not routed | not routed |
-| `engine_signmag` | 30.39 ns | `acc_clear_i` | 12.08 ns | not routed | not routed |
-| `engine_bitserial` | 66.24 ns | `_25522_` | 12.24 ns | 67.0 MHz | 90.8 MHz |
+| `engine_infer` | 30.38 ns | `acc_clear_i` | 10.06 ns | 81.4 MHz | 120.7 MHz |
+| `engine_wallace` | 30.38 ns | `acc_clear_i` | 10.46 ns | still routing | still routing |
+| `engine_booth4` | 30.39 ns | `acc_clear_i` | 11.85 ns | 83.0 MHz | 123.6 MHz |
+| `engine_signmag` | 30.39 ns | `acc_clear_i` | 12.08 ns | 69.2 MHz | 104.2 MHz |
+| `engine_bitserial` | 66.24 ns | `_25522_` | 12.24 ns | 77.3 MHz | 120.6 MHz |
+
+The synthesis column ranks the candidates almost identically and is wrong about all of
+them. It puts every single-cycle candidate within 0.01 ns of 30.39 ns and `engine_infer`
+ahead of `engine_signmag` on the datapath path by 2 ns; after routing they differ by 12
+MHz in the opposite proportion. The synthesis number is measuring a control net that
+place and route buffers away.
 
 The first version of this measurement reported 32.9 MHz for four different multiplier
 microarchitectures, within 15 picoseconds of each other. Four different multipliers
@@ -312,11 +368,21 @@ that straddle zero, and a loss for a post-ReLU unsigned activation stream. Post-
 unsigned activations are extremely common in exactly the inference workloads an INT8
 accelerator is built for.
 
+**And routing charges it again, in frequency.** Everything above is measured on the
+synthesis netlist, where the comparison against `engine_wallace` is properly controlled.
+After place and route `engine_signmag` closes at 69.2 MHz against 83.0 MHz for
+`engine_booth4`, and uses slightly more energy per tile, 429 pJ against 419 pJ. The
+conversion logic adds depth that a power sweep at fixed frequency cannot charge it for,
+and it routes the most wire of any candidate. A 13 percent power saving bought with a 17
+percent frequency loss is not a saving at constant throughput.
+
 The honest summary: sign-magnitude encoding is worth about 13 percent of total power on
-signed data, nothing like the 29 percent a transition count suggests, and it is a net
-loss on unsigned data. Whether to use it is a question about your operand statistics, not
-a question with one answer. That distinction does not survive a single-number benchmark,
-which is why the sweep exists.
+signed data at a fixed clock, nothing like the 29 percent a transition count suggests, it
+is a net loss on unsigned data, and after routing it is slower and no cheaper in energy
+than plain Booth recoding. Whether to use it is a question about your operand statistics
+and your timing slack, not a question with one answer. None of that distinction survives
+a single-number benchmark, which is why the sweep exists and why the sweep is not the
+last word either.
 
 ![Activity against operand sign mix](docs/img/activity_vs_signs.png)
 
@@ -382,8 +448,14 @@ it to compare designs with different cycle counts.
 
 ![Die area against measured energy](docs/img/ppa_pareto_real.png)
 
-Both axes are physical: routed die area against energy per tile launch. Energy rather
-than power, for the reason above.
+Both axes are physical and both are post-route: routed die area against energy per tile
+launch measured on the routed netlist. Energy rather than power, for the reason above.
+
+Reading it: `engine_booth4` and `engine_bitserial` are the two candidates on the
+frontier. Booth is the best single-cycle design on every axis, and bit-serial buys a
+2.2x smaller die for 3x the energy and 1.92x the cycles, which is the right trade only
+when area is the binding constraint. `engine_infer` and `engine_signmag` are both
+dominated by Booth: bigger, slower and no cheaper.
 
 ### Whole chip
 
@@ -655,9 +727,16 @@ worse than no benchmark at all.
 - **`power__total` in `results/pnr/summary.json` is not measured power.** It is
   OpenROAD's estimate at its default switching activity, roughly five times the annotated
   figure. The measured number is in `results/pnr/routed_power.json`.
-- **The sign-magnitude result is a qualified one.** It is a 13.5 percent total-power win
-  on all-negative operands, a 4.2 percent loss on all-positive ones, and roughly half
-  what a transition-count study would have claimed.
+- **The sign-magnitude result is a qualified one.** At a fixed clock it is a 13.5 percent
+  total-power win on all-negative operands, a 4.2 percent loss on all-positive ones, and
+  roughly half what a transition-count study would have claimed. After routing the
+  candidate is also 17 percent slower than Booth and no cheaper in energy.
+- **Place and route is not bit-reproducible.** The same candidate routed twice from the
+  identical configuration gave Fmax figures 15 percent apart. Area was stable to 0.04
+  percent. Small frequency differences between candidates are not significant.
+- **`engine_wallace` has not finished routing.** Its row is marked as such rather than
+  filled with a synthesis estimate, and the controlled post-route comparison against
+  `engine_signmag` is therefore not yet available.
 
 ## Licence
 

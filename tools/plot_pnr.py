@@ -154,29 +154,51 @@ def plot_fmax(pnr: dict):
     print(f"wrote {out.relative_to(REPO)}")
 
 
-def plot_real_pareto(pnr: dict, pdk: dict, perf: dict):
+def plot_real_pareto(pnr: dict, pdk: dict, perf: dict, routed_power: dict | None):
+    """Routed die area against energy per tile.
+
+    Both axes have to come from the same stage or the chart is comparing a routed die
+    against a synthesis netlist's power. Energy is taken from the post-route
+    measurement where it exists and only falls back to the synthesis one otherwise,
+    which the caption then says.
+    """
+    measured = (routed_power or {}).get("candidates", {})
     names = [n for n in names_in(pnr) if f"engine_{n}" in pdk]
+    stage = "post-route" if all(f"engine_{n}" in measured for n in names) else "mixed"
     fig, ax = plt.subplots(figsize=(8.6, 6.0))
+    points = []
     for n in names:
         x = pnr[f"engine_{n}"]["design__die__area"] / 1e6
-        y = pdk[f"engine_{n}"]["energy_per_tile_pj"]
+        post = measured.get(f"engine_{n}")
+        y = (post or pdk[f"engine_{n}"])["energy_per_tile_pj"]
         ax.scatter(x, y, s=200, color=COLOURS[n], edgecolor="white", linewidth=1.6,
                    zorder=3)
         cycles = perf["candidates"].get(n, {}).get("cycles") if perf else None
-        note = n + (f"\n{cycles:,} cycles" if cycles else "")
-        ax.annotate(note, (x, y), textcoords="offset points", xytext=(12, 6),
-                    fontsize=10, color=COLOURS[n], fontweight="600")
+        points.append((x, y, n + (f"\n{cycles:,} cycles" if cycles else "")))
+    # Candidates with the same cycle count land almost on top of each other, so the
+    # labels have to be pushed apart or they overprint and none of them is readable.
+    order = sorted(range(len(points)), key=lambda i: points[i][0])
+    for rank, i in enumerate(order):
+        x, y, note = points[i]
+        offset = (12, 8) if rank % 2 == 0 else (12, -30)
+        ax.annotate(note, (x, y), textcoords="offset points", xytext=offset,
+                    fontsize=10, color=COLOURS[names[i]], fontweight="600")
+    ax.margins(x=0.18, y=0.14)
     ax.set_xlabel("routed die area (square millimetres)")
     ax.set_ylabel("energy per tile launch (picojoules)")
-    ax.set_title("Die area against measured energy")
+    ax.set_title("Routed die area against measured energy")
+    source = ("Energy is measured on the routed netlist, with the parasitics extracted "
+              "from the routing, so both\naxes describe the same physical object."
+              if stage == "post-route" else
+              "Energy for candidates without a post-route measurement falls back to "
+              "their synthesis netlist.")
     ax.text(0.0, -0.16,
-            "Both axes are physical units. Area is the routed die from LibreLane. Energy "
-            "is OpenROAD's power with switching\nactivity annotated from a gate level "
-            "VCD of the same netlist under an identical operand stream at an even "
-            "sign\nmix, at 100 percent annotation coverage, times the time the "
-            "candidate takes for one tile. Energy rather than power,\nbecause a "
-            "candidate that spreads the same work over eight cycles draws less power for "
-            "longer. Down and to the\nleft is better.",
+            f"Both axes are physical units. Area is the routed die from LibreLane. "
+            f"{source}\nSwitching activity is annotated from a gate level VCD under an "
+            "identical operand stream at an even sign mix, at 100\npercent annotation "
+            "coverage, times the time the candidate takes for one tile. Energy rather "
+            "than power, because\na candidate that spreads the same work over eight "
+            "cycles draws less power for longer. Down and to the left is\nbetter.",
             transform=ax.transAxes, fontsize=9, color="#5a6672", va="top")
     out = IMG / "ppa_pareto_real.png"
     fig.savefig(out)
@@ -292,6 +314,8 @@ def main() -> int:
     pdk_doc = load(RESULTS / "pdk" / "summary.json", "tools/pdk_ppa.py")
     activity = load(RESULTS / "activity" / "gate_summary.json", "make power")
     perf = load(RESULTS / "perf" / "cycle_counts.json", "make sim")
+    routed_power = load(RESULTS / "pnr" / "routed_power.json",
+                        "tools/verify_routed.py")
 
     if pnr_doc:
         pnr = pnr_doc["candidates"]
@@ -300,7 +324,7 @@ def main() -> int:
     if pnr_doc and pdk_doc:
         pdk = dict(pdk_doc["candidates"])
         pdk["_clock_ns"] = next(iter(pdk_doc["candidates"].values()))["power_clock_ns"]
-        plot_real_pareto(pnr_doc["candidates"], pdk, perf)
+        plot_real_pareto(pnr_doc["candidates"], pdk, perf, routed_power)
     if pdk_doc and activity:
         plot_proxy_vs_real(pdk_doc["candidates"], activity)
 

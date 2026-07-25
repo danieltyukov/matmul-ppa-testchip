@@ -4,31 +4,31 @@
   "clock_ns": 20.0,
   "note": "Post-route functional verification and post-route power. The netlist is LibreLane's final netlist, the one the GDS was streamed from. 'functional: pass' means every output element of every tile matched the NumPy reference model, on the routed netlist, simulated against the PDK's own cell models. Power is annotated from the VCD of that run with the parasitics extracted from the routing, so it is measured on real cells with real wire capacitance and real switching activity. The simulation is zero-delay, because the PDK specify blocks have to be stripped for Icarus, so glitch power is still not counted.",
   "candidates": {
-    "engine_bitserial": {
-      "top": "engine_bitserial",
-      "netlist": "flow/librelane/engine_bitserial/runs/pnr/final/nl/engine_bitserial.nl.v",
-      "spef": "flow/librelane/engine_bitserial/runs/pnr/final/spef/nom/engine_bitserial.nom.spef",
+    "engine_infer": {
+      "top": "engine_infer",
+      "netlist": "flow/librelane/engine_infer/runs/pnr/final/nl/engine_infer.nl.v",
+      "spef": "flow/librelane/engine_infer/runs/pnr/final/spef/nom/engine_infer.nom.spef",
       "functional": "pass",
       "power_corner": "typ_1p20V_25C",
       "clock_ns": 20.0,
       "power": {
         "sequential": {
-          "internal_w": 0.00250016782,
-          "switching_w": 5.81451714e-05,
-          "leakage_w": 4.52746292e-07,
-          "total_w": 0.00255876593
+          "internal_w": 0.00164007023,
+          "switching_w": 8.31615544e-05,
+          "leakage_w": 3.01922654e-07,
+          "total_w": 0.00172353361
         },
         "combinational": {
-          "internal_w": 0.00100634061,
-          "switching_w": 0.00122282316,
-          "leakage_w": 2.30615115e-06,
-          "total_w": 0.00223147008
+          "internal_w": 0.00239950721,
+          "switching_w": 0.00330334809,
+          "leakage_w": 6.28406724e-06,
+          "total_w": 0.00570913916
         },
         "clock": {
-          "internal_w": 0.00111490674,
-          "switching_w": 0.000648491201,
-          "leakage_w": 8.1624321e-06,
-          "total_w": 0.0017715604
+          "internal_w": 0.00076071755,
+          "switching_w": 0.000511691207,
+          "leakage_w": 2.48665365e-05,
+          "total_w": 0.0012972753
         },
         "macro": {
           "internal_w": 0.0,
@@ -43,15 +43,186 @@
           "total_w": 0.0
         },
         "total": {
-          "internal_w": 0.00462139165,
-          "switching_w": 0.00192945939,
-          "leakage_w": 1.09211887e-05,
-          "total_w": 0.00656177243
+          "internal_w": 0.00480028382,
+          "switching_w": 0.00389820151,
+          "leakage_w": 3.14525896e-05,
+          "total_w": 0.00872993842
         }
       },
-      "energy_per_tile_pj": 1253.572,
+      "energy_per_tile_pj": 445.591,
       "activity_annotation": {
-        "annotated_pins": 42929,
+        "annotated_pins": 126490,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_signmag": {
+      "top": "engine_signmag",
+      "netlist": "flow/librelane/engine_signmag/runs/pnr/final/nl/engine_signmag.nl.v",
+      "spef": "flow/librelane/engine_signmag/runs/pnr/final/spef/nom/engine_signmag.nom.spef",
+      "functional": "pass",
+      "power_corner": "typ_1p20V_25C",
+      "clock_ns": 20.0,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00163989398,
+          "switching_w": 7.4774216e-05,
+          "leakage_w": 3.01849951e-07,
+          "total_w": 0.0017149701
+        },
+        "combinational": {
+          "internal_w": 0.00215167063,
+          "switching_w": 0.00330832601,
+          "leakage_w": 5.63851063e-06,
+          "total_w": 0.00546563556
+        },
+        "clock": {
+          "internal_w": 0.000726846862,
+          "switching_w": 0.000484168995,
+          "leakage_w": 2.10172821e-05,
+          "total_w": 0.00123203313
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00451843766,
+          "switching_w": 0.00386726949,
+          "leakage_w": 2.69575903e-05,
+          "total_w": 0.00841266382
+        }
+      },
+      "energy_per_tile_pj": 429.396,
+      "activity_annotation": {
+        "annotated_pins": 109922,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_booth4": {
+      "top": "engine_booth4",
+      "netlist": "flow/librelane/engine_booth4/runs/pnr/final/nl/engine_booth4.nl.v",
+      "spef": "flow/librelane/engine_booth4/runs/pnr/final/spef/nom/engine_booth4.nom.spef",
+      "functional": "pass",
+      "power_corner": "typ_1p20V_25C",
+      "clock_ns": 20.0,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00164033065,
+          "switching_w": 6.82092723e-05,
+          "leakage_w": 3.02287134e-07,
+          "total_w": 0.00170884223
+        },
+        "combinational": {
+          "internal_w": 0.00224554376,
+          "switching_w": 0.00299804448,
+          "leakage_w": 5.54380904e-06,
+          "total_w": 0.00524913194
+        },
+        "clock": {
+          "internal_w": 0.000743114913,
+          "switching_w": 0.000488398306,
+          "leakage_w": 2.04774205e-05,
+          "total_w": 0.00125199067
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00462899776,
+          "switching_w": 0.00355465221,
+          "leakage_w": 2.63235361e-05,
+          "total_w": 0.00820997357
+        }
+      },
+      "energy_per_tile_pj": 419.051,
+      "activity_annotation": {
+        "annotated_pins": 104659,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_bitserial": {
+      "top": "engine_bitserial",
+      "netlist": "flow/librelane/engine_bitserial/runs/pnr/final/nl/engine_bitserial.nl.v",
+      "spef": "flow/librelane/engine_bitserial/runs/pnr/final/spef/nom/engine_bitserial.nom.spef",
+      "functional": "pass",
+      "power_corner": "typ_1p20V_25C",
+      "clock_ns": 20.0,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00250034546,
+          "switching_w": 5.85392372e-05,
+          "leakage_w": 4.52863247e-07,
+          "total_w": 0.00255933753
+        },
+        "combinational": {
+          "internal_w": 0.00101460528,
+          "switching_w": 0.00122697279,
+          "leakage_w": 2.31625313e-06,
+          "total_w": 0.00224389415
+        },
+        "clock": {
+          "internal_w": 0.00106269319,
+          "switching_w": 0.000640323735,
+          "leakage_w": 8.13153383e-06,
+          "total_w": 0.00171114842
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00457761995,
+          "switching_w": 0.00192583597,
+          "leakage_w": 1.09005114e-05,
+          "total_w": 0.00651435647
+        }
+      },
+      "energy_per_tile_pj": 1244.514,
+      "activity_annotation": {
+        "annotated_pins": 42949,
         "unannotated_pins": 0,
         "coverage": 1.0
       },
