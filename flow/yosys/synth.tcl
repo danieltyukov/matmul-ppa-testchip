@@ -40,12 +40,43 @@ set filelist [envdef FILELIST rtl/filelist.f]
 set write_netlist [envdef WRITE_NETLIST 0]
 set abc_clock_ps  [envdef ABC_CLOCK_PS 20000]
 
+# Flatten for the leaf modules, so cell counts are directly comparable between
+# candidates and the gate level netlist is self contained for the activity
+# measurement. Keep hierarchy for the aggregate tops: flattening five 40 000 cell
+# candidates into one module makes ABC's mapping time explode for no benefit, since
+# the per-candidate numbers are already measured on their own.
+set flatten       [envdef FLATTEN 1]
+
+# How many latch cells this build is expected to contain. The only intentional latch
+# in the design is inside clock_gate.sv, which is an integrated clock gate and is
+# supposed to be one. With hierarchy preserved that is one latch cell in one module
+# however many times the module is instantiated; flattened, it is one per instance.
+# Any other latch is an inferred latch and a bug.
+set expect_latches [envdef EXPECT_LATCHES 0]
+
+# Whether to turn inferred memories into flip-flops.
+#
+# 0 (the default) leaves them as memory cells, which the statistics report
+# separately as memories and memory bits. That is the honest picture: the four
+# matrix stores are SRAM in any real build, and a report that counts 74 kbit of
+# storage as flip-flops overstates the chip's logic by an order of magnitude.
+#
+# 1 maps them to flip-flops, which the standard cell flow has to do because this
+# build binds no SRAM macros. It is also very slow on the memory bearing tops.
+set map_memory [envdef MAP_MEMORY 0]
+
+# Where the machine readable netlist JSON goes. It is a build artefact rather than a
+# report: for the whole chip it is 60 MB of internal net names, which is not evidence
+# of anything a reader can check. Keep it out of the committed results by default.
+set json_dir [envdef JSON_DIR $out_dir]
+
 if {$top eq ""} {
   log -stderr "synth.tcl: set TOP to the module to synthesise"
   exit 1
 }
 
 file mkdir $out_dir
+file mkdir $json_dir
 
 # ---------------------------------------------------------------------------
 # Read
@@ -72,26 +103,30 @@ foreach src $sources {
 hierarchy -check -top $top
 
 # ---------------------------------------------------------------------------
-# Generic synthesis
+# Synthesis
 # ---------------------------------------------------------------------------
-# -flatten gives one flat module, which makes the cell counts directly
-# comparable between candidates and makes the gate level netlist self contained
-# for the activity measurement.
-synth -top $top -flatten
+if {$flatten == 1} {
+  synth -top $top -flatten
+} else {
+  synth -top $top
+}
 
 opt -full
 opt_clean -purge
 
 # ---------------------------------------------------------------------------
-# No inferred latches, and no unexpected blackboxes.
+# Structural checks.
 #
-# The behavioural SRAM is the one intentional technology boundary in the design.
-# In this generic build it is inferred as $mem_v2 (or as registers when the tool
-# decides that is cheaper), never as a blackbox, so a blackbox here means
-# something failed to elaborate.
+# Latches: see EXPECT_LATCHES above. Everything else must be edge triggered.
+#
+# Blackboxes: the behavioural SRAM is the one intentional technology boundary in
+# the design, and in this build it is inferred as memory and then mapped, never
+# left as a blackbox, so 'check -assert' finding one would mean something failed
+# to elaborate.
 # ---------------------------------------------------------------------------
-select -assert-none {t:$_DLATCH_*} {t:$_DLATCHSR_*} {t:$dlatch} {t:$dlatchsr} {t:$sr}
-log "check: no inferred latches"
+select -assert-count $expect_latches {t:$_DLATCH_*} {t:$_DLATCHSR_*} \
+    {t:$dlatch} {t:$dlatchsr} {t:$sr}
+log "check: exactly $expect_latches latch(es), all of them integrated clock gates"
 
 # Multiple drivers, undriven inputs and similar structural problems.
 check -assert
@@ -104,11 +139,12 @@ if {$mode eq "sg13g2"} {
     exit 1
   }
 
-  # Memories have to become registers before standard cell mapping, because this
-  # build has no SRAM macros to bind. That is honest but expensive in area, and
-  # the report says so.
-  memory_map
-  opt -full
+  if {$map_memory == 1} {
+    # No SRAM macros are bound in this build, so memories become flip-flops. That
+    # is honest but expensive: see the note in results/synth/sg13g2/summary.json.
+    memory_map
+    opt -full
+  }
 
   dfflibmap -liberty $lib
   # -fast bounds ABC's effort. Without it the candidate built from inferred
@@ -119,9 +155,9 @@ if {$mode eq "sg13g2"} {
   splitnets -ports
   opt_clean -purge
 
-  tee -o $out_dir/${top}_sg13g2_stat.txt stat -liberty $lib
+  tee -o $out_dir/${top}_sg13g2_stat.txt stat -liberty $lib -top $top
   tee -o $out_dir/${top}_sg13g2_ltp.txt ltp -noff
-  write_json $out_dir/${top}_sg13g2.json
+  write_json $json_dir/${top}_sg13g2.json
   if {$write_netlist == 1} {
     write_verilog -noattr $out_dir/${top}_sg13g2_netlist.v
   }
@@ -129,8 +165,10 @@ if {$mode eq "sg13g2"} {
   # Unit-cost generic gates. No liberty, so no area in micrometres: the report is
   # cell counts and logic depth, plus gate equivalents computed by
   # tools/synth_collect.py from static CMOS transistor counts.
-  memory_map
-  opt -full
+  if {$map_memory == 1} {
+    memory_map
+    opt -full
+  }
   # A deliberately small gate set: fewer cell types map faster and keep the gate
   # equivalent model in tools/synth_collect.py simple enough to state exactly.
   # -fast bounds ABC's effort so every candidate is treated alike.
@@ -138,9 +176,9 @@ if {$mode eq "sg13g2"} {
   setundef -zero
   opt_clean -purge
 
-  tee -o $out_dir/${top}_generic_stat.txt stat
+  tee -o $out_dir/${top}_generic_stat.txt stat -top $top
   tee -o $out_dir/${top}_generic_ltp.txt ltp -noff
-  write_json $out_dir/${top}_generic.json
+  write_json $json_dir/${top}_generic.json
   if {$write_netlist == 1} {
     write_verilog -noattr $out_dir/${top}_generic_netlist.v
   }

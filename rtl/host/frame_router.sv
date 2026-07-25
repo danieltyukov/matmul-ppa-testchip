@@ -412,9 +412,14 @@ module frame_router #(
 
   // Store reads take one cycle inside the SRAM, so the request strobe is delayed
   // by one to know when the byte is on the store's host output.
+  // A suppressed read must not capture: no access was issued, so the store's output
+  // holds nothing meaningful. That covers both an out-of-range address and the
+  // prefetch that runs one byte past the end of a store at the close of a full
+  // length read. The previously parked byte is left in place instead, so an out of
+  // range read returns the last valid byte rather than an undefined one.
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) mem_capture_q <= 1'b0;
-    else         mem_capture_q <= mem_rd_stb;
+    else         mem_capture_q <= mem_rd_stb && addr_ok;
   end
 
   always_comb begin

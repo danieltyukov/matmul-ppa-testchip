@@ -1,0 +1,28 @@
+name: lint
+
+# Verilator --lint-only -Wall on the whole chip and on the verification harness.
+# Zero warnings is the pass condition, not zero errors.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verilator:
+    # Ubuntu 24.04 ships Verilator 5.020, which is the version this repository is
+    # developed against. Pinning the runner image rather than using ubuntu-latest
+    # keeps the lint result reproducible when GitHub moves the label.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Verilator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends verilator
+          verilator --version
+
+      - name: Lint the chip
+        run: make lint

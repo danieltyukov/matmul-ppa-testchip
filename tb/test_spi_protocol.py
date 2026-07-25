@@ -250,11 +250,22 @@ async def test_address_out_of_range(dut):
 
     # A full length read that ends exactly at the last byte is legal, and the
     # prefetch that runs one byte past the end must not be reported as an error.
+    # Store A is written first: the behavioural SRAM models a real macro and powers
+    # up unknown, so reading a location that was never written returns X, which is
+    # correct behaviour and not what this test is about.
+    rng = np.random.default_rng(29)
+    payload = gm.matrix_to_bytes_int8(gm.random_int8(rng, (gm.MAT_M, gm.MAT_K)))
+    await spi.write_memory(gm.OP_WR_A, 0, payload)
+
     await spi.trigger(gm.TRIG_CLR_STICKY)
-    await spi.read_memory(gm.OP_RD_A, 0, gm.A_BYTES)
+    got = await spi.read_memory(gm.OP_RD_A, 0, gm.A_BYTES)
     status = await spi.read_status()
     assert not (status & gm.ST_CMD_ERR), (
         "a full length read was wrongly flagged, so the end of buffer prefetch is not handled"
+    )
+    assert got == payload, (
+        "the full length read returned the wrong data, so suppressing the end of "
+        "buffer prefetch broke the last byte"
     )
 
 

@@ -52,8 +52,15 @@ module sram_1rw #(
   logic [WORD_W-1:0] mem [WORDS];
   logic [WORD_W-1:0] rdata_q;
 
-  always_ff @(posedge clk_i) begin
-    if (req_i) begin
+  // The read register is reset so that a read the design never issued cannot put an
+  // unknown value on a bus. A real macro powers up unknown, so nothing upstream is
+  // allowed to depend on this: frame_router only samples reads it actually issued.
+  // This makes such a bug show up as a wrong byte rather than as an X whose
+  // propagation differs between simulators.
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      rdata_q <= '0;
+    end else if (req_i) begin
       if (we_i) begin
         for (int unsigned l = 0; l < LANES; l++) begin
           if (wstrb_i[l]) mem[addr_i][l*8 +: 8] <= wdata_i[l*8 +: 8];
@@ -65,11 +72,6 @@ module sram_1rw #(
   end
 
   assign rdata_o = rdata_q;
-
-  // rst_ni is part of the wrapper contract because PDK macros often need it for
-  // retention or built-in self test control. The behavioural body does not.
-  logic unused_rst;
-  assign unused_rst = rst_ni;
 `endif
 
 endmodule

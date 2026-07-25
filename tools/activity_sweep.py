@@ -241,12 +241,13 @@ def build_gate_bench(engine: int, netlist: pathlib.Path,
 
 def run_gate_bench(binary: pathlib.Path, a_hex: pathlib.Path, b_hex: pathlib.Path,
                    vcd: pathlib.Path, tiles: int, clear_every: int,
-                   latency: int) -> str:
+                   latency: int, name: str) -> str:
     result = subprocess.run(
         [
             "vvp", str(binary),
             f"+a_hex={a_hex}", f"+b_hex={b_hex}", f"+vcd={vcd}",
             f"+tiles={tiles}", f"+clear_every={clear_every}", f"+latency={latency}",
+            f"+name={name}",
         ],
         check=True, capture_output=True, text=True,
     )
@@ -288,7 +289,8 @@ def gate_sweep(args) -> int:
             name = gm.ENGINE_NAMES[engine]
             vcd = work / f"gate_{name}_{tag}.vcd"
             run_gate_bench(binaries[engine], a_hex, b_hex, vcd, args.tiles,
-                           args.clear_every, gm.ENGINE_LATENCY[engine])
+                           args.clear_every, gm.ENGINE_LATENCY[engine],
+                           f"engine_{name}")
             report = parse_vcd(vcd, start_time=SETTLE_TIME,
                                scope_filter=GATE_BENCH_TOP)
             dut_prefix = f"{GATE_BENCH_TOP}.u_dut"

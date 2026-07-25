@@ -22,3 +22,8 @@ pdk/
 .vscode/
 .idea/
 *.swp
+
+# Yosys machine-readable netlists and full transcripts: build artefacts, not
+# evidence. Only the trimmed reports under results/synth are committed.
+results/synth/**/*.json.netlist
+results/synth/**/*_yosys.log

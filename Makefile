@@ -26,7 +26,8 @@ BUILD := $(REPO_ROOT)/build
 CASES ?=
 SEED ?= 20260725
 
-CHIP_TESTS := test_spi_protocol test_end_to_end test_tiling test_perf_counters \
+CHIP_TESTS := test_config test_spi_protocol test_end_to_end test_tiling \
+              test_perf_counters \
               test_reset_gating
 ENGINE_TESTS := test_engine_exact test_engine_equiv
 

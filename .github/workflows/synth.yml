@@ -1,0 +1,64 @@
+name: synth
+
+# Yosys synthesis per candidate and for the whole chip, in generic gate mode. No PDK
+# is needed for this, which is the point of having a generic mode.
+#
+# There is no PDK job. The IHP SG13G2 liberty is Apache-2.0 and could be fetched in
+# CI, but it is a large third-party artefact with its own release cadence and pinning
+# it here would make this workflow a test of the PDK rather than of this repository.
+# Run `tools/fetch_pdk.sh && make synth-pdk` locally for real cell area.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  yosys:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Yosys
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends yosys
+          yosys -V
+
+      - name: Create the virtualenv
+        run: make venv
+
+      - name: Synthesise every candidate and the chip
+        # Asserts no inferred latches and runs 'check -assert' inside the script, so
+        # a structural regression fails here rather than being noticed in a report.
+        run: make synth
+
+      - name: Show the summary
+        run: cat results/synth/summary.csv
+
+      - name: Fail if the committed reports changed
+        # The reports in results/synth are committed, and Yosys is deterministic, so
+        # a diff here means either the RTL changed without the reports being
+        # regenerated or the toolchain version moved. Either is worth knowing.
+        run: |
+          if ! git diff --quiet -- results/synth; then
+            echo "::warning::results/synth differs from the committed reports."
+            echo "Run 'make synth' locally and commit the result, or check whether"
+            echo "the CI Yosys version differs from the one the reports were made with."
+            git diff --stat -- results/synth
+          else
+            echo "committed synthesis reports match"
+          fi
+
+      - name: Upload the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: synthesis-reports
+          path: results/synth/
+          if-no-files-found: warn

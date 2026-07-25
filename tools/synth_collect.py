@@ -59,6 +59,10 @@ TRANSISTORS = {
     "$_MUX4_": 20,
     "$_MUX8_": 36,
     "$_MUX16_": 68,
+    # A transmission gate level sensitive latch plus its enable inverter. The only
+    # latches in this design are inside clock_gate.sv, where they belong.
+    "$_DLATCH_N_": 10,
+    "$_DLATCH_P_": 10,
 }
 # Flip-flops, in all the reset and enable flavours Yosys emits. A plain D
 # flip-flop built from two transmission gate latches plus clock inverters is about
@@ -97,21 +101,34 @@ _CELL_RE = re.compile(r"^\s+(\$?[\w$.]+)\s+(\d+)\s*$")
 _TOTAL_RE = re.compile(r"^\s+Number of cells:\s+(\d+)\s*$")
 _WIRE_RE = re.compile(r"^\s+Number of wire bits:\s+(\d+)\s*$")
 _AREA_RE = re.compile(r"Chip area for (?:top )?module '.*?':\s+([\d.]+)")
+_MEM_RE = re.compile(r"^\s+Number of memories:\s+(\d+)\s*$")
+_MEMBIT_RE = re.compile(r"^\s+Number of memory bits:\s+(\d+)\s*$")
 _LTP_RE = re.compile(r"Longest topological path in \S+ \(length=(\d+)\)")
 
 
 def parse_stat(text: str) -> dict:
     """Pull cell counts, wire bits and (for a liberty run) chip area out of `stat`.
 
-    Yosys prints one statistics block per module. With -flatten there is only one
-    real module, but the report can still contain a leftover block, so the last
-    total wins: that is the top level after flattening.
+    Yosys prints one block per module, and with `-top` it appends a design hierarchy
+    roll-up whose totals cover the whole design. Taking the last block therefore
+    gives the flattened module when the design was flattened and the design-wide
+    roll-up when it was not, which is what both cases want.
     """
     cells: dict[str, int] = {}
     total = 0
     wire_bits = 0
     area = None
+    memories = 0
+    memory_bits = 0
     for line in text.splitlines():
+        match = _MEM_RE.match(line)
+        if match:
+            memories = int(match.group(1))
+            continue
+        match = _MEMBIT_RE.match(line)
+        if match:
+            memory_bits = int(match.group(1))
+            continue
         match = _TOTAL_RE.match(line)
         if match:
             total = int(match.group(1))
@@ -129,7 +146,8 @@ def parse_stat(text: str) -> dict:
         if match and not line.strip().startswith("Number of"):
             cells[match.group(1)] = int(match.group(2))
     return {"cells": cells, "total_cells": total, "wire_bits": wire_bits,
-            "chip_area_um2": area}
+            "chip_area_um2": area, "memories": memories,
+            "memory_bits": memory_bits}
 
 
 def parse_ltp(text: str) -> int | None:
@@ -143,7 +161,11 @@ def gate_equivalents(cells: dict[str, int]) -> tuple[float, int, int]:
     comb = 0
     flops = 0
     for cell, count in cells.items():
-        if cell in TRANSISTORS:
+        if cell.startswith("$_DLATCH_"):
+            # Counted towards area but not towards either the combinational or the
+            # sequential total, because a clock gate latch is neither.
+            total_transistors += TRANSISTORS[cell] * count
+        elif cell in TRANSISTORS:
             total_transistors += TRANSISTORS[cell] * count
             comb += count
         elif "DFF" in cell or "SDFF" in cell or "ADFF" in cell:
@@ -167,8 +189,27 @@ def run_yosys(top: str, mode: str, out_dir: pathlib.Path, netlist: bool,
         "FILELIST": str(REPO / "rtl" / "filelist.f"),
         "WRITE_NETLIST": "1" if netlist else "0",
         "EXTRA_SOURCES": extra_sources,
+        # Leaf candidates are flattened so their cell counts are directly
+        # comparable and the netlist is self contained. Aggregate tops keep their
+        # hierarchy: flattening five 40 000 cell candidates into one module makes
+        # ABC's mapping time explode for nothing.
+        "FLATTEN": "1" if top in ENGINE_TOPS else "0",
+        # The only intentional latch in the design is inside clock_gate.sv, which is
+        # an integrated clock gate and is supposed to be one. The candidates contain
+        # no clock gate, so they must have none. The aggregate tops keep their
+        # hierarchy, so clock_gate appears once as a module however many times it is
+        # instantiated, and the expected count is one rather than ENGINE_COUNT.
+        "EXPECT_LATCHES": "0" if top in ENGINE_TOPS else "1",
+        # Memories stay memories in the generic report and become flip-flops for the
+        # standard cell flow, which has no macros to bind.
+        "MAP_MEMORY": "1" if mode == "sg13g2" else "0",
+        # JSON netlists are build artefacts, not reports; keep them out of results/.
+        "JSON_DIR": str(REPO / "build" / "synth"),
     })
-    log = out_dir / f"{top}_{mode}_yosys.log"
+    (REPO / "build" / "synth").mkdir(parents=True, exist_ok=True)
+    # The full Yosys transcript for the whole chip is 60 MB, almost all of it net
+    # names, so it goes to build/ and only the trimmed reports are committed.
+    log = REPO / "build" / "synth" / f"{top}_{mode}_yosys.log"
     out_dir.mkdir(parents=True, exist_ok=True)
     with log.open("w") as handle:
         result = subprocess.run(
@@ -180,9 +221,31 @@ def run_yosys(top: str, mode: str, out_dir: pathlib.Path, netlist: bool,
         raise RuntimeError(f"yosys failed for {top} in mode {mode}:\n{tail}")
 
 
+def trim_ltp(path: pathlib.Path) -> str:
+    """Keep the ltp headline and drop the path listing.
+
+    `ltp -noff` prints every cell on the longest path, which for the whole chip is
+    64 MB. The length is the number; the listing is only useful while debugging a
+    specific path, and it is still in build/ for that.
+    """
+    text = path.read_text()
+    lines = text.splitlines()
+    keep = []
+    for line in lines:
+        keep.append(line)
+        if "Longest topological path" in line:
+            break
+    keep.append("")
+    keep.append(f"(path listing of {len(lines)} lines omitted; the full report is in "
+                f"build/synth/)")
+    trimmed = "\n".join(keep) + "\n"
+    path.write_text(trimmed)
+    return trimmed
+
+
 def collect(top: str, mode: str, out_dir: pathlib.Path) -> dict:
     stat = (out_dir / f"{top}_{mode}_stat.txt").read_text()
-    ltp = (out_dir / f"{top}_{mode}_ltp.txt").read_text()
+    ltp = trim_ltp(out_dir / f"{top}_{mode}_ltp.txt")
     parsed = parse_stat(stat)
     ge, comb, flops = gate_equivalents(parsed["cells"])
     return {
@@ -195,6 +258,8 @@ def collect(top: str, mode: str, out_dir: pathlib.Path) -> dict:
         "gate_equivalents": round(ge, 1),
         "logic_depth": parse_ltp(ltp),
         "chip_area_um2": parsed["chip_area_um2"],
+        "memories": parsed["memories"],
+        "memory_bits": parsed["memory_bits"],
         "cell_histogram": dict(sorted(parsed["cells"].items())),
     }
 
@@ -237,7 +302,7 @@ def main(argv: list[str] | None = None) -> int:
             run_yosys(top, mode, target_dir, want_netlist)
             if want_netlist:
                 # Keep the reports with the other reports, the netlist in build/.
-                for suffix in ("stat.txt", "ltp.txt", "yosys.log"):
+                for suffix in ("stat.txt", "ltp.txt"):
                     src = target_dir / f"{top}_{mode}_{suffix}"
                     if src.exists():
                         shutil.copy(src, mode_dir / src.name)
@@ -246,8 +311,11 @@ def main(argv: list[str] | None = None) -> int:
             rows.append(entry)
             area = (f"{entry['chip_area_um2']:.1f} um2"
                     if entry["chip_area_um2"] else f"{entry['gate_equivalents']} GE")
+            mem = (f"  {entry['memory_bits']:>6} mem bits"
+                   if entry["memory_bits"] else "")
             print(f"  {top:<20} {entry['total_cells']:>7} cells  "
-                  f"{entry['flip_flops']:>5} FF  depth {entry['logic_depth']:>4}  {area}")
+                  f"{entry['flip_flops']:>5} FF  depth {entry['logic_depth']:>4}  "
+                  f"{area}{mem}")
 
         payload = {
             "source": "tools/synth_collect.py",
@@ -255,17 +323,25 @@ def main(argv: list[str] | None = None) -> int:
             "yosys": subprocess.run(["yosys", "-V"], capture_output=True,
                                     text=True).stdout.strip(),
             "note": (
-                "Generic mode reports unit-cost gate counts and gate equivalents "
-                "derived from static CMOS transistor counts. That is not PDK area. "
-                "The sg13g2 mode reports real cell area from the IHP SG13G2 "
-                "liberty file, but with the SRAMs mapped to flip-flops because "
-                "this build binds no memory macros, so the memory dominated tops "
-                "are much larger than a macro backed implementation would be."
+                "Unit-cost generic gate counts, plus gate equivalents derived from "
+                "static CMOS transistor counts (NAND2 = 1 GE). This is not PDK "
+                "area. The candidates are flattened so their counts are directly "
+                "comparable; the aggregate tops keep their hierarchy and their "
+                "matrix stores are left as memory cells rather than mapped to "
+                "flip-flops, because those stores are SRAM in any real build and "
+                "counting 74 kbit of storage as flip-flops would overstate the "
+                "chip's logic by an order of magnitude. memory_bits reports that "
+                "storage separately. One consequence of keeping the hierarchy: "
+                "logic_depth for the aggregate tops is the longest path through the "
+                "top module only, not through the submodules below it, so it is only "
+                "meaningful for the flattened candidate reports."
                 if mode == "generic" else
                 "Cell area in square micrometres from the IHP SG13G2 typical "
                 "liberty file, standard cells only. No place and route, so no "
-                "routing, filler, tap or pad area is included, and this is a cell "
-                "area sum rather than a die area."
+                "routing, filler, tap or pad area is included: this is a cell area "
+                "sum, not a die area. Memories are mapped to flip-flops because "
+                "this build binds no SRAM macros, so any memory bearing top is far "
+                "larger here than a macro backed implementation would be."
             ),
             "tops": results,
         }
@@ -276,11 +352,12 @@ def main(argv: list[str] | None = None) -> int:
         writer = csv.writer(handle)
         writer.writerow(["mode", "top", "total_cells", "combinational_cells",
                          "flip_flops", "gate_equivalents", "logic_depth",
-                         "chip_area_um2"])
+                         "memory_bits", "chip_area_um2"])
         for row in rows:
             writer.writerow([row["mode"], row["top"], row["total_cells"],
                              row["combinational_cells"], row["flip_flops"],
                              row["gate_equivalents"], row["logic_depth"],
+                             row["memory_bits"],
                              "" if row["chip_area_um2"] is None
                              else f"{row['chip_area_um2']:.3f}"])
     print(f"\nwrote {args.out_dir / 'summary.csv'}")

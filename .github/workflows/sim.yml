@@ -1,0 +1,55 @@
+name: sim
+
+# The cocotb suite on Icarus Verilog. Runs the reduced sweep (CASES=64), because a
+# pull request reaches the same conclusion as the full local run in a fraction of
+# the time; `make sim` locally runs the full one.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cocotb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends iverilog
+          iverilog -V | head -1
+
+      - name: Create the virtualenv
+        run: make venv
+
+      - name: Engine tests
+        # Bit-exactness against NumPy and cross-candidate equivalence. The
+        # exhaustive multiplier sweep is strided hard here; locally it runs at
+        # stride 8 and can run at stride 1.
+        env:
+          GEMM_EXHAUSTIVE_STRIDE: '64'
+        run: make sim-engines CASES=64
+
+      - name: Chip tests
+        # Protocol, end-to-end flow, tiling, performance counters, reset and gating.
+        run: make sim-chip
+
+      - name: Upload measurement output
+        # results/perf and results/trace are what the charts and the timing figure
+        # are drawn from, so they are useful artefacts even on a green run.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: measurements
+          path: |
+            results/perf/
+            results/trace/
+            sim_build/*/results.xml
+          if-no-files-found: warn

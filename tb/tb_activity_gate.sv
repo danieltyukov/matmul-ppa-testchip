@@ -84,6 +84,7 @@ module tb_activity_gate;
   string a_path;
   string b_path;
   string vcd_path;
+  string dut_name;
   int    n_tiles;
   int    clear_every;
   int    latency;
@@ -107,6 +108,9 @@ module tb_activity_gate;
     if (!$value$plusargs("tiles=%d", n_tiles))  n_tiles = 64;
     if (!$value$plusargs("clear_every=%d", clear_every)) clear_every = 8;
     if (!$value$plusargs("latency=%d", latency)) latency = 1;
+    // The instantiated module comes from a macro, and stringifying a macro is not
+    // portable, so the name is passed in for the report line instead.
+    if (!$value$plusargs("name=%s", dut_name)) dut_name = "unknown";
 
     if (n_tiles > MAX_TILES) begin
       $fatal(1, "tb_activity_gate: tiles=%0d exceeds MAX_TILES=%0d",
@@ -175,7 +179,7 @@ module tb_activity_gate;
 
     repeat (8) @(posedge clk);
     $display("tb_activity_gate: module=%s tiles=%0d latency=%0d errors=%0d vcd=%s",
-             `"`ENGINE_MODULE`", n_tiles, latency, errors, vcd_path);
+             dut_name, n_tiles, latency, errors, vcd_path);
     if (errors != 0) begin
       $fatal(1, "tb_activity_gate: the gate level netlist does not match the reference");
     end

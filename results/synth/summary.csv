@@ -1,0 +1,4 @@
+mode,top,total_cells,combinational_cells,flip_flops,gate_equivalents,logic_depth,memory_bits,chip_area_um2
+generic,engine_array,232071,229225,2841,468907.0,44,0,
+generic,bench_core,412685,327103,85577,1401683.0,11,0,
+generic,gemm_bench_chip,412687,327105,85577,1401689.0,11,0,
