@@ -112,8 +112,9 @@ Three antenna violations and one max-fanout violation remain, which are reported
 than swept up.
 
 Its 185,381 um2 of routed cells against 149,875 um2 at synthesis is a **24 percent
-growth**, and the die is 2.4 times the routed cell area. Both numbers are the reason
-synthesis area should not be quoted as a die size.
+growth**, and the die is 1.9 times the routed cell area again. Compounding the two, the
+die is 2.4 times the synthesis cell area, which is the reason synthesis area should never
+be quoted as a die size.
 
 Fmax is `1/(period - worst setup slack)` from signoff STA at `nom_slow_1p08V_125C`, the
 corner a tapeout closes at. That arithmetic is exact rather than approximate because
