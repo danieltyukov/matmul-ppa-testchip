@@ -16,6 +16,8 @@
       "internal_w": 0.00246985815,
       "switching_w": 0.00143356109,
       "leakage_w": 4.96893426e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 199.491,
       "coverage": 1.0
     },
     {
@@ -25,6 +27,8 @@
       "internal_w": 0.00253703888,
       "switching_w": 0.00153034204,
       "leakage_w": 4.74977696e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 207.848,
       "coverage": 1.0
     },
     {
@@ -34,6 +38,8 @@
       "internal_w": 0.00277849636,
       "switching_w": 0.00183468254,
       "leakage_w": 4.99540738e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 235.719,
       "coverage": 1.0
     },
     {
@@ -43,6 +49,8 @@
       "internal_w": 0.00270908093,
       "switching_w": 0.00172283291,
       "leakage_w": 4.75926436e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 226.455,
       "coverage": 1.0
     },
     {
@@ -52,6 +60,8 @@
       "internal_w": 0.00293215644,
       "switching_w": 0.00202931347,
       "leakage_w": 5.02045123e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 253.498,
       "coverage": 1.0
     },
     {
@@ -61,6 +71,8 @@
       "internal_w": 0.00278602215,
       "switching_w": 0.00176283345,
       "leakage_w": 4.76730611e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 232.425,
       "coverage": 1.0
     },
     {
@@ -70,6 +82,8 @@
       "internal_w": 0.00289012981,
       "switching_w": 0.00206276448,
       "leakage_w": 5.03172669e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 253.061,
       "coverage": 1.0
     },
     {
@@ -79,6 +93,8 @@
       "internal_w": 0.00270760595,
       "switching_w": 0.00172809395,
       "leakage_w": 4.75803608e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 226.648,
       "coverage": 1.0
     },
     {
@@ -88,6 +104,8 @@
       "internal_w": 0.00276040775,
       "switching_w": 0.00195125316,
       "leakage_w": 5.05187063e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 240.749,
       "coverage": 1.0
     },
     {
@@ -97,6 +115,8 @@
       "internal_w": 0.00254184217,
       "switching_w": 0.0015318665,
       "leakage_w": 4.75077695e-06,
+      "cycles_per_tile": 2.552,
+      "energy_per_tile_pj": 208.171,
       "coverage": 1.0
     }
   ]
