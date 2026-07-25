@@ -53,7 +53,7 @@ help:
 	@echo "  make all         lint, sim, synth, power, images"
 	@echo ""
 	@echo "  make report      print the committed measurements as markdown"
-	@echo "  make style       enforce the line length and whitespace rules"
+	@echo "  make style       line length, whitespace and markdown link checks"
 	@echo "  make lint-template lint the candidate skeleton a fork starts from"
 	@echo ""
 	@echo "  make check-tools report which tools are present"
@@ -122,6 +122,7 @@ lint-template:
 # ---------------------------------------------------------------------------
 style: venv
 	$(VENV_PY) tools/check_style.py
+	$(VENV_PY) tools/check_docs.py
 
 # ---------------------------------------------------------------------------
 # Simulation

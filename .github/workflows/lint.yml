@@ -1,7 +1,9 @@
 name: lint
 
-# Verilator --lint-only -Wall on the whole chip and on the verification harness.
-# Zero warnings is the pass condition, not zero errors.
+# Verilator --lint-only -Wall on the chip, on the verification harness and on the
+# candidate skeleton a fork starts from. Zero warnings is the pass condition, not zero
+# errors. Also the style and documentation link checks, which are cheap and catch the
+# most visible kind of rot.
 
 on:
   push:
@@ -24,5 +26,19 @@ jobs:
           sudo apt-get install -y --no-install-recommends verilator
           verilator --version
 
-      - name: Lint the chip
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Lint the chip and the harness
         run: make lint
+
+      - name: Lint the candidate skeleton
+        # engine_template.sv is what a fork copies to add its own candidate. It is not
+        # in rtl/filelist.f, so nothing else would catch it going stale.
+        run: make lint-template
+
+      - name: Style and documentation links
+        # Line length, trailing whitespace, final newlines, and every relative link and
+        # image in the markdown.
+        run: make style
