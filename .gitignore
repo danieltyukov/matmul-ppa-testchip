@@ -27,3 +27,7 @@ pdk/
 # evidence. Only the trimmed reports under results/synth are committed.
 results/synth/**/*.json.netlist
 results/synth/**/*_yosys.log
+
+# PDK checkout from tools/fetch_pdk.sh: a large third-party artefact with its own
+# release cadence. Fetch it, do not vendor it.
+pdk/

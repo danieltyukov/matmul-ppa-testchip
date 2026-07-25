@@ -69,24 +69,31 @@ $(VENV_PY): requirements.txt
 	$(VENV)/bin/pip install --quiet -r requirements.txt
 	@echo "virtualenv ready at $(VENV)"
 
+# Each tool wants a different version flag, so they are probed individually rather
+# than assumed to accept --version. iverilog and vvp use -V, klayout uses -v, and
+# openroad uses -version with one dash.
 check-tools:
-	@for tool in verilator iverilog vvp yosys klayout python3; do \
+	@printf '%-14s %s\n' "tool" "version"
+	@for spec in "verilator:--version" "iverilog:-V" "vvp:-V" "yosys:-V" \
+	             "klayout:-v" "python3:--version" "openroad:-version"; do \
+	  tool=$${spec%%:*}; flag=$${spec#*:}; \
 	  if command -v $$tool >/dev/null 2>&1; then \
-	    printf '  %-12s %s\n' "$$tool" "$$($$tool --version 2>&1 | head -1)"; \
+	    printf '  %-12s %s\n' "$$tool" "$$($$tool $$flag 2>&1 | head -1)"; \
 	  else \
 	    printf '  %-12s MISSING\n' "$$tool"; \
 	  fi; \
 	done
-	@if command -v openroad >/dev/null 2>&1; then \
-	  printf '  %-12s %s\n' openroad "$$(openroad -version 2>&1 | head -1)"; \
-	else \
-	  printf '  %-12s MISSING (make flow is unavailable)\n' openroad; \
-	fi
-	@if [ -n "$$SG13G2_LIB" ] && [ -f "$$SG13G2_LIB" ]; then \
-	  printf '  %-12s %s\n' SG13G2_LIB "$$SG13G2_LIB"; \
-	else \
-	  printf '  %-12s not set (make synth-pdk is unavailable)\n' SG13G2_LIB; \
-	fi
+	@echo ""
+	@echo "PDK, needed only by make synth-pdk and make flow:"
+	@for var in SG13G2_LIB SG13G2_TECH_LEF SG13G2_CELL_LEF; do \
+	  eval "value=\$$$$var"; \
+	  if [ -n "$$value" ] && [ -f "$$value" ]; then \
+	    printf '  %-16s %s\n' "$$var" "$$value"; \
+	  else \
+	    printf '  %-16s not set\n' "$$var"; \
+	  fi; \
+	done
+	@echo "  run tools/fetch_pdk.sh then 'source pdk/env.sh' to set them"
 
 # ---------------------------------------------------------------------------
 # Lint
