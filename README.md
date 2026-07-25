@@ -354,13 +354,29 @@ rtl/
   measure/    cycle_meter, mac_meter, result_checker
   top/        bench_core, pad_frame, gemm_bench_chip
 tb/           cocotb suite, the NumPy reference model, the SPI driver, SV benches
-tools/        synthesis collection, VCD activity proxy, figure generators
+tools/        synthesis collection, VCD activity proxy, figure generators,
+              and program_chip.py: the host driver for packaged silicon
 flow/         Yosys script and the PDK-gated OpenROAD sequence
 constraints/  clocks, IO and area SDC
 results/      every measurement the README and the figures are built from
 docs/         architecture, memory map, PPA methodology, verification plan,
               and the guide for adding your own candidate
 ```
+
+## Bringing up silicon
+
+`tools/program_chip.py` drives the packaged chip from Linux spidev with the same
+command sequences the tests use, sharing its frame construction with the testbench
+through `tb/gemm_model.py` so a protocol change cannot make the two disagree silently.
+
+```bash
+tools/program_chip.py info                    # identify the chip, report its geometry
+tools/program_chip.py bench --engine 1        # one candidate, checked on chip
+tools/program_chip.py sweep --clock-hz 50e6   # every candidate, PPA table
+tools/program_chip.py read-c --out result.npy
+```
+
+It has never been run against silicon, because nothing has been fabricated.
 
 ## Documentation
 

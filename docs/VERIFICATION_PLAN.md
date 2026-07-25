@@ -218,4 +218,12 @@ There are no blackboxes. The behavioural SRAM is inferred as memory and then map
 never left as a blackbox, so a blackbox in a report would mean something failed to
 elaborate.
 
-Reports are committed under `results/synth/`.
+Reports are committed under `results/synth/`, for both the generic gate mode and the
+IHP SG13G2 standard cell mode.
+
+## 11. Silicon, when there is any
+
+`tools/program_chip.py` runs the same sequences over Linux spidev. It shares its frame
+construction with the testbench through `tb/gemm_model.py`, so a protocol change cannot
+make the host driver and the tests disagree without a test failing. Nothing has been
+fabricated, so it has never been run against a chip.
