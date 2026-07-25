@@ -9,6 +9,23 @@ Five files change. Nothing else in the design needs to know your candidate exist
 
 ---
 
+## 0. Start from the skeleton
+
+`rtl/engines/engine_template.sv` is a complete, lint-clean, working single-cycle
+candidate with the arithmetic factored out behind a marked block. Copy it, rename the
+module, and replace what is below the marker.
+
+```bash
+cp rtl/engines/engine_template.sv rtl/engines/engine_mine.sv
+sed -i 's/engine_template/engine_mine/' rtl/engines/engine_mine.sv
+make lint-template          # the skeleton is kept lint clean on purpose
+```
+
+It is deliberately absent from `rtl/filelist.f`, so it never reaches a measurement.
+As written it computes the right answer with an inferred multiply, which means it will
+pass every correctness test and tell you nothing: the point is that it starts from a
+known-good baseline rather than from a blank file.
+
 ## 1. The interface
 
 Every candidate implements this exact port list. Copy it verbatim.

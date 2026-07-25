@@ -31,10 +31,10 @@ CHIP_TESTS := test_config test_spi_protocol test_end_to_end test_tiling \
               test_reset_gating
 ENGINE_TESTS := test_engine_exact test_engine_equiv
 
-.PHONY: all help venv lint sim sim-engines sim-chip sim-quick synth synth-pdk \
-        power images flow clean distclean check-tools
+.PHONY: all help venv lint lint-template sim sim-engines sim-chip sim-quick synth \
+        synth-pdk power images report flow clean distclean check-tools
 
-all: lint sim synth power images
+all: lint lint-template sim synth power images
 	@echo ""
 	@echo "lint, sim, synth, power and images all completed."
 
@@ -51,6 +51,9 @@ help:
 	@echo "  make images      regenerate every figure in docs/img from results/"
 	@echo "  make flow        OpenROAD place and route (needs the IHP PDK)"
 	@echo "  make all         lint, sim, synth, power, images"
+	@echo ""
+	@echo "  make report      print the committed measurements as markdown"
+	@echo "  make lint-template lint the candidate skeleton a fork starts from"
 	@echo ""
 	@echo "  make check-tools report which tools are present"
 
@@ -98,6 +101,18 @@ lint:
 	  --top-module tb_engine_harness $(RTL_PATHS) $(TB_DIR)/tb_engine_harness.sv
 	@echo "lint: zero warnings on gemm_bench_chip (no waivers)"
 	@echo "lint: zero warnings on tb_engine_harness (UNUSEDPARAM waived, see Makefile)"
+
+# rtl/engines/engine_template.sv is the skeleton a fork copies to add its own
+# candidate. It is deliberately not in rtl/filelist.f, so it never reaches any
+# measurement, but it has to stay lint clean or the first thing a contributor sees is
+# a broken starting point.
+lint-template:
+	verilator --lint-only -Wall -Wno-UNUSEDPARAM -sv \
+	  --top-module engine_template \
+	  $(REPO_ROOT)/rtl/pkg/gemm_pkg.sv \
+	  $(REPO_ROOT)/rtl/engines/acc_bank.sv \
+	  $(REPO_ROOT)/rtl/engines/engine_template.sv
+	@echo "lint-template: zero warnings"
 
 # ---------------------------------------------------------------------------
 # Simulation
@@ -151,6 +166,12 @@ images: venv
 	$(VENV_PY) tools/plot_activity.py
 	$(VENV_PY) tools/plot_floorplan.py
 	@echo "images: docs/img is up to date"
+
+# ---------------------------------------------------------------------------
+# Reporting
+# ---------------------------------------------------------------------------
+report: venv
+	$(VENV_PY) tools/report_summary.py
 
 # ---------------------------------------------------------------------------
 # Place and route
