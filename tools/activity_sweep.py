@@ -65,8 +65,16 @@ ENGINE_INSTANCES = {
 # not counted, so no candidate is charged for coming out of reset.
 SETTLE_TIME = 200_000  # in VCD time units (1 ps), that is 200 ns
 
+# The RTL sweep is one simulation for all candidates, so it can afford a fine sweep.
 DEFAULT_NEG_FRACTIONS = [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0]
 DEFAULT_TILES = 192
+
+# The gate level sweep is one simulation per candidate per point on netlists of tens
+# of thousands of cells, and each dump is tens of megabytes, so it is deliberately
+# coarser. Five points still resolve the crossing and the trend, and the two sweeps
+# agree on shape.
+GATE_NEG_FRACTIONS = [0.0, 0.25, 0.5, 0.75, 1.0]
+GATE_TILES = 48
 
 
 def rtl_sources() -> list[pathlib.Path]:
@@ -255,6 +263,8 @@ def run_gate_bench(binary: pathlib.Path, a_hex: pathlib.Path, b_hex: pathlib.Pat
 
 
 def gate_sweep(args) -> int:
+    tiles = args.gate_tiles
+    fractions = args.gate_neg_fractions
     work = pathlib.Path(tempfile.mkdtemp(prefix="gemm-activity-gate-"))
     netlist_dir = REPO / "build" / "synth"
     print(f"work directory {work}")
@@ -274,21 +284,22 @@ def gate_sweep(args) -> int:
                 if "Number of cells:" in line:
                     cells = int(line.split(":")[1].strip())
         cell_counts[gm.ENGINE_NAMES[engine]] = cells
-        print(f"  {gm.ENGINE_NAMES[engine]:<12} netlist ready ({cells} cells)")
+        print(f"  {gm.ENGINE_NAMES[engine]:<12} netlist ready ({cells} cells)",
+              flush=True)
 
     points = []
-    for neg_fraction in args.neg_fractions:
+    for neg_fraction in fractions:
         tag = f"neg{int(round(neg_fraction * 1000)):04d}"
         a_hex = work / f"a_{tag}.hex"
         b_hex = work / f"b_{tag}.hex"
-        stats = write_stimulus(a_hex, b_hex, args.tiles, neg_fraction, args.seed)
+        stats = write_stimulus(a_hex, b_hex, tiles, neg_fraction, args.seed)
 
         per_candidate = {}
         per_candidate_nets = {}
         for engine in sorted(ENGINE_INSTANCES):
             name = gm.ENGINE_NAMES[engine]
             vcd = work / f"gate_{name}_{tag}.vcd"
-            run_gate_bench(binaries[engine], a_hex, b_hex, vcd, args.tiles,
+            run_gate_bench(binaries[engine], a_hex, b_hex, vcd, tiles,
                            args.clear_every, gm.ENGINE_LATENCY[engine],
                            f"engine_{name}")
             report = parse_vcd(vcd, start_time=SETTLE_TIME,
@@ -311,14 +322,14 @@ def gate_sweep(args) -> int:
         points.append({
             "tag": tag,
             "operand_stats": stats,
-            "tiles": args.tiles,
+            "tiles": tiles,
             "clear_every": args.clear_every,
             "per_candidate": per_candidate,
             "per_candidate_nets": per_candidate_nets,
         })
         ranked = sorted(per_candidate.items(), key=lambda kv: kv[1])
         print(f"  neg={stats['measured_neg_fraction']:.3f}  "
-              + "  ".join(f"{n}={c}" for n, c in ranked))
+              + "  ".join(f"{n}={c}" for n, c in ranked), flush=True)
 
     summary = {
         "source": "tools/activity_sweep.py --level gate",
@@ -340,7 +351,7 @@ def gate_sweep(args) -> int:
         ),
         "netlist_cells": cell_counts,
         "settle_time_vcd_units": SETTLE_TIME,
-        "tiles_per_point": args.tiles,
+        "tiles_per_point": tiles,
         "seed": args.seed,
         "points": points,
     }
@@ -374,7 +385,13 @@ def main(argv: list[str] | None = None) -> int:
                         help="clear the accumulators every n tiles, mirroring GRID_K")
     parser.add_argument("--seed", type=int, default=20260725)
     parser.add_argument("--neg-fractions", type=float, nargs="+",
-                        default=DEFAULT_NEG_FRACTIONS)
+                        default=DEFAULT_NEG_FRACTIONS,
+                        help="sweep points for the RTL level sweep")
+    parser.add_argument("--gate-neg-fractions", type=float, nargs="+",
+                        default=GATE_NEG_FRACTIONS,
+                        help="sweep points for the gate level sweep")
+    parser.add_argument("--gate-tiles", type=int, default=GATE_TILES,
+                        help="operand tile pairs per gate level sweep point")
     parser.add_argument("--out-dir", type=pathlib.Path,
                         default=REPO / "results" / "activity")
     parser.add_argument("--keep-vcd", action="store_true",

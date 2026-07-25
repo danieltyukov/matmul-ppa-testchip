@@ -132,15 +132,26 @@ _SCOPE_RE = re.compile(r"\$scope\s+(?P<kind>\S+)\s+(?P<name>\S+)\s*\$end")
 _TIMESCALE_RE = re.compile(r"\$timescale\s+(?P<ts>.+?)\s*\$end", re.S)
 
 
+_CLEAN = {"0", "1"}
+
+
 def _hamming(old: str, new: str, width: int) -> int:
     """Bit transitions between two VCD binary strings, padded to `width`.
 
-    VCD omits leading zeros in vector values, so both sides are left-padded. An x
-    or z on either side of a bit position counts as one transition if the two
-    characters differ, which treats entering and leaving an unknown state as
-    activity. That matches what happens in silicon: a node driven to an
-    indeterminate level has moved.
+    VCD omits leading zeros in vector values, so both sides are left-padded. An x or z
+    on either side of a bit position counts as one transition if the two characters
+    differ, which treats entering and leaving an unknown state as activity. That
+    matches what happens in silicon: a node driven to an indeterminate level has moved.
+
+    The common case, two fully defined values, is done with an integer XOR and a
+    population count. That is roughly an order of magnitude faster than comparing
+    characters, and this function runs once per value change on every net in a dump
+    that can hold tens of millions of them.
     """
+    if old == new:
+        return 0
+    if _CLEAN.issuperset(old) and _CLEAN.issuperset(new):
+        return (int(old, 2) ^ int(new, 2)).bit_count()
     old_p = old.rjust(width, old[0] if old and old[0] in "xzXZ" else "0")
     new_p = new.rjust(width, new[0] if new and new[0] in "xzXZ" else "0")
     return sum(1 for a, b in zip(old_p, new_p) if a != b)

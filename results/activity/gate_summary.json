@@ -1,0 +1,145 @@
+{
+  "source": "tools/activity_sweep.py --level gate",
+  "bench": "tb_activity_gate",
+  "simulator": "Icarus Verilog on Yosys generic gate netlists",
+  "measure": "bit transitions (Hamming distance per value change)",
+  "why_gate_level": "The candidates are described at different levels of abstraction, so RTL net counts are not comparable between them: engine_infer is a behavioural multiply with almost no internal nets. After synthesis every candidate is a flat netlist of the same generic gates, which makes the transition counts comparable.",
+  "caveat": "A switching-activity proxy for dynamic power, not a power measurement. Every net is weighted equally regardless of its real capacitance, and gate delays are zero in this simulation so glitch power is not captured. See docs/PPA_METHODOLOGY.md.",
+  "netlist_cells": {
+    "infer": 39482,
+    "wallace": 46526,
+    "booth4": 34169,
+    "signmag": 42361,
+    "bitserial": 11760
+  },
+  "settle_time_vcd_units": 200000,
+  "tiles_per_point": 48,
+  "seed": 20260725,
+  "points": [
+    {
+      "tag": "neg0000",
+      "operand_stats": {
+        "requested_neg_fraction": 0.0,
+        "measured_neg_fraction": 0.0,
+        "operand_bytes": 1536,
+        "mean_abs": 63.565104166666664
+      },
+      "tiles": 48,
+      "clear_every": 8,
+      "per_candidate": {
+        "infer": 421039,
+        "wallace": 471153,
+        "booth4": 521323,
+        "signmag": 508501,
+        "bitserial": 896800
+      },
+      "per_candidate_nets": {
+        "infer": 38979,
+        "wallace": 46023,
+        "booth4": 33666,
+        "signmag": 41858,
+        "bitserial": 10929
+      }
+    },
+    {
+      "tag": "neg0250",
+      "operand_stats": {
+        "requested_neg_fraction": 0.25,
+        "measured_neg_fraction": 0.24674479166666666,
+        "operand_bytes": 1536,
+        "mean_abs": 63.6484375
+      },
+      "tiles": 48,
+      "clear_every": 8,
+      "per_candidate": {
+        "infer": 569172,
+        "wallace": 619792,
+        "booth4": 590427,
+        "signmag": 566793,
+        "bitserial": 1139306
+      },
+      "per_candidate_nets": {
+        "infer": 38979,
+        "wallace": 46023,
+        "booth4": 33666,
+        "signmag": 41858,
+        "bitserial": 10929
+      }
+    },
+    {
+      "tag": "neg0500",
+      "operand_stats": {
+        "requested_neg_fraction": 0.5,
+        "measured_neg_fraction": 0.5013020833333334,
+        "operand_bytes": 1536,
+        "mean_abs": 63.981770833333336
+      },
+      "tiles": 48,
+      "clear_every": 8,
+      "per_candidate": {
+        "infer": 636062,
+        "wallace": 702230,
+        "booth4": 609502,
+        "signmag": 581679,
+        "bitserial": 1226929
+      },
+      "per_candidate_nets": {
+        "infer": 38979,
+        "wallace": 46023,
+        "booth4": 33666,
+        "signmag": 41858,
+        "bitserial": 10929
+      }
+    },
+    {
+      "tag": "neg0750",
+      "operand_stats": {
+        "requested_neg_fraction": 0.75,
+        "measured_neg_fraction": 0.73828125,
+        "operand_bytes": 1536,
+        "mean_abs": 64.1484375
+      },
+      "tiles": 48,
+      "clear_every": 8,
+      "per_candidate": {
+        "infer": 658156,
+        "wallace": 730072,
+        "booth4": 598028,
+        "signmag": 567681,
+        "bitserial": 1217507
+      },
+      "per_candidate_nets": {
+        "infer": 38979,
+        "wallace": 46023,
+        "booth4": 33666,
+        "signmag": 41858,
+        "bitserial": 10929
+      }
+    },
+    {
+      "tag": "neg1000",
+      "operand_stats": {
+        "requested_neg_fraction": 1.0,
+        "measured_neg_fraction": 1.0,
+        "operand_bytes": 1536,
+        "mean_abs": 64.31510416666667
+      },
+      "tiles": 48,
+      "clear_every": 8,
+      "per_candidate": {
+        "infer": 651350,
+        "wallace": 712611,
+        "booth4": 535852,
+        "signmag": 509131,
+        "bitserial": 1124355
+      },
+      "per_candidate_nets": {
+        "infer": 38979,
+        "wallace": 46023,
+        "booth4": 33666,
+        "signmag": 41858,
+        "bitserial": 10929
+      }
+    }
+  ]
+}

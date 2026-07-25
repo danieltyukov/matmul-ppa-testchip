@@ -1,0 +1,49 @@
+{
+  "source": "tb/test_perf_counters.py::test_cycle_and_mac_counts_match_analysis",
+  "note": "Cycle and MAC counts read out of the chip's performance counters over SPI after a full MAT_M x MAT_N x MAT_K run, one entry per candidate. Simulated with Icarus Verilog on the behavioural SRAM model.",
+  "geometry": {
+    "mat_m": 32,
+    "mat_n": 32,
+    "mat_k": 32,
+    "tile_m": 4,
+    "tile_n": 4,
+    "tile_k": 4
+  },
+  "candidates": {
+    "infer": {
+      "index": 0,
+      "cycles": 3904,
+      "macs": 32768,
+      "macs_per_cycle": 8.39344262295082,
+      "launch_to_valid_latency": 1
+    },
+    "wallace": {
+      "index": 1,
+      "cycles": 3904,
+      "macs": 32768,
+      "macs_per_cycle": 8.39344262295082,
+      "launch_to_valid_latency": 1
+    },
+    "booth4": {
+      "index": 2,
+      "cycles": 3904,
+      "macs": 32768,
+      "macs_per_cycle": 8.39344262295082,
+      "launch_to_valid_latency": 1
+    },
+    "signmag": {
+      "index": 3,
+      "cycles": 3904,
+      "macs": 32768,
+      "macs_per_cycle": 8.39344262295082,
+      "launch_to_valid_latency": 1
+    },
+    "bitserial": {
+      "index": 4,
+      "cycles": 7488,
+      "macs": 32768,
+      "macs_per_cycle": 4.3760683760683765,
+      "launch_to_valid_latency": 8
+    }
+  }
+}

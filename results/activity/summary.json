@@ -1,0 +1,201 @@
+{
+  "source": "tools/activity_sweep.py",
+  "bench": "tb_activity_engines",
+  "simulator": "Icarus Verilog (complete net set in the VCD)",
+  "measure": "bit transitions (Hamming distance per value change)",
+  "caveat": "A switching-activity proxy for dynamic power, not a power measurement. See docs/PPA_METHODOLOGY.md for what it does and does not tell you.",
+  "settle_time_vcd_units": 200000,
+  "tiles_per_point": 192,
+  "seed": 20260725,
+  "points": [
+    {
+      "tag": "neg0000",
+      "operand_stats": {
+        "requested_neg_fraction": 0.0,
+        "measured_neg_fraction": 0.0,
+        "operand_bytes": 6144,
+        "mean_abs": 62.89208984375
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0000.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0000.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0000.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0000.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 11791016,
+      "per_candidate": {
+        "infer": 401556,
+        "wallace": 2941999,
+        "booth4": 3809013,
+        "signmag": 3042962,
+        "bitserial": 1249416
+      }
+    },
+    {
+      "tag": "neg0125",
+      "operand_stats": {
+        "requested_neg_fraction": 0.125,
+        "measured_neg_fraction": 0.12532552083333334,
+        "operand_bytes": 6144,
+        "mean_abs": 63.058756510416664
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0125.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0125.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0125.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0125.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 13367464,
+      "per_candidate": {
+        "infer": 443224,
+        "wallace": 3786564,
+        "booth4": 4178172,
+        "signmag": 3219058,
+        "bitserial": 1380812
+      }
+    },
+    {
+      "tag": "neg0250",
+      "operand_stats": {
+        "requested_neg_fraction": 0.25,
+        "measured_neg_fraction": 0.24641927083333334,
+        "operand_bytes": 6144,
+        "mean_abs": 63.100423177083336
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0250.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0250.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0250.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0250.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 14488225,
+      "per_candidate": {
+        "infer": 484890,
+        "wallace": 4423294,
+        "booth4": 4399332,
+        "signmag": 3312712,
+        "bitserial": 1450489
+      }
+    },
+    {
+      "tag": "neg0375",
+      "operand_stats": {
+        "requested_neg_fraction": 0.375,
+        "measured_neg_fraction": 0.3680013020833333,
+        "operand_bytes": 6144,
+        "mean_abs": 63.26708984375
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0375.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0375.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0375.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0375.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 15178576,
+      "per_candidate": {
+        "infer": 502128,
+        "wallace": 4880750,
+        "booth4": 4506862,
+        "signmag": 3350122,
+        "bitserial": 1488368
+      }
+    },
+    {
+      "tag": "neg0500",
+      "operand_stats": {
+        "requested_neg_fraction": 0.5,
+        "measured_neg_fraction": 0.5,
+        "operand_bytes": 6144,
+        "mean_abs": 63.39208984375
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0500.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0500.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0500.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0500.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 15594342,
+      "per_candidate": {
+        "infer": 505808,
+        "wallace": 5209216,
+        "booth4": 4563328,
+        "signmag": 3360896,
+        "bitserial": 1498968
+      }
+    },
+    {
+      "tag": "neg0625",
+      "operand_stats": {
+        "requested_neg_fraction": 0.625,
+        "measured_neg_fraction": 0.62060546875,
+        "operand_bytes": 6144,
+        "mean_abs": 63.496256510416664
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0625.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0625.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0625.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0625.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 15734283,
+      "per_candidate": {
+        "infer": 502479,
+        "wallace": 5385413,
+        "booth4": 4549891,
+        "signmag": 3353970,
+        "bitserial": 1489128
+      }
+    },
+    {
+      "tag": "neg0750",
+      "operand_stats": {
+        "requested_neg_fraction": 0.75,
+        "measured_neg_fraction": 0.7486979166666666,
+        "operand_bytes": 6144,
+        "mean_abs": 63.558756510416664
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0750.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0750.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0750.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0750.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 15556078,
+      "per_candidate": {
+        "infer": 481178,
+        "wallace": 5435737,
+        "booth4": 4469223,
+        "signmag": 3315964,
+        "bitserial": 1441232
+      }
+    },
+    {
+      "tag": "neg0875",
+      "operand_stats": {
+        "requested_neg_fraction": 0.875,
+        "measured_neg_fraction": 0.8800455729166666,
+        "operand_bytes": 6144,
+        "mean_abs": 63.725423177083336
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg0875.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg0875.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg0875.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg0875.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 15029861,
+      "per_candidate": {
+        "infer": 442640,
+        "wallace": 5342421,
+        "booth4": 4279131,
+        "signmag": 3221966,
+        "bitserial": 1379839
+      }
+    },
+    {
+      "tag": "neg1000",
+      "operand_stats": {
+        "requested_neg_fraction": 1.0,
+        "measured_neg_fraction": 1.0,
+        "operand_bytes": 6144,
+        "mean_abs": 63.787923177083336
+      },
+      "tiles": 192,
+      "clear_every": 8,
+      "bench_report": "WARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:88: $readmemh(/tmp/gemm-activity-g4ejlljj/a_neg1000.hex): Not enough words in the file for the requested range [0:65535].\nWARNING: /home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:89: $readmemh(/tmp/gemm-activity-g4ejlljj/b_neg1000.hex): Not enough words in the file for the requested range [0:65535].\nVCD info: dumpfile /tmp/gemm-activity-g4ejlljj/engines_neg1000.vcd opened for output.\ntb_activity_engines: 192 tile launches, 5 candidates, vcd=/tmp/gemm-activity-g4ejlljj/engines_neg1000.vcd\n/home/danieltyukov/workspace/personal/matmul-ppa-testchip/tb/tb_activity_engines.sv:134: $finish called at 17725000 (1ps)",
+      "nets_observed": 20500,
+      "total_transitions": 14236676,
+      "per_candidate": {
+        "infer": 404034,
+        "wallace": 5108125,
+        "booth4": 3968773,
+        "signmag": 3055960,
+        "bitserial": 1351750
+      }
+    }
+  ]
+}

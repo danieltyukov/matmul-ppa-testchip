@@ -1,4 +1,9 @@
 mode,top,total_cells,combinational_cells,flip_flops,gate_equivalents,logic_depth,memory_bits,chip_area_um2
-generic,engine_array,232071,229225,2841,468907.0,44,0,
-generic,bench_core,412685,327103,85577,1401683.0,11,0,
-generic,gemm_bench_chip,412687,327105,85577,1401689.0,11,0,
+generic,engine_infer,39482,38969,513,79682.5,51,0,
+generic,engine_wallace,46526,46013,513,89590.0,53,0,
+generic,engine_booth4,34169,33656,513,71647.5,52,0,
+generic,engine_signmag,42361,41848,513,82183.5,59,0,
+generic,engine_bitserial,11760,10971,789,27767.5,59,0,
+generic,engine_array,232071,229225,2841,468919.5,44,0,
+generic,bench_core,412685,327103,85577,1401695.5,11,0,
+generic,gemm_bench_chip,412687,327105,85577,1401701.5,11,0,

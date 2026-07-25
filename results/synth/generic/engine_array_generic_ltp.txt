@@ -2,4 +2,4 @@
 
 Longest topological path in $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_bitserial (length=44):
 
-(path listing of 315 lines omitted; the full report is in build/synth/)
+(path listing of 5 lines omitted; the full report is in build/synth/)

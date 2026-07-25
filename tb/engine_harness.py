@@ -20,14 +20,10 @@ import gemm_model as gm
 CLK_PERIOD_NS = 10
 
 # cocotb resumes from RisingEdge before non-blocking assignments have settled, so
-# every step nudges the simulation a little past the edge before sampling. Staying
-# in a writable region (rather than using ReadOnly) keeps drive and sample in the
-# same helper.
+# every step nudges the simulation a little past the edge before sampling. Staying in
+# a writable region (rather than using ReadOnly) keeps drive and sample in the same
+# helper.
 SETTLE_NS = 1
-
-# Number of random tile launches per candidate in the main sweep. Each launch
-# exercises all ENGINE_COUNT candidates at once.
-RANDOM_LAUNCHES = int(os.environ.get("GEMM_CASES") or 2000)
 
 
 class EngineHarness:

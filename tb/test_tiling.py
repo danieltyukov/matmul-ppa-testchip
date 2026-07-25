@@ -109,30 +109,39 @@ async def test_single_nonzero_tile_positions(dut):
 async def test_k_tile_accumulation_is_complete(dut):
     """Every K tile must contribute, and exactly once.
 
-    Building A so that k tile kt contributes 2**kt to a known output element makes
-    the result a bit mask of which K tiles were accumulated. A skipped K tile
-    clears a bit and a doubled one overflows into the next, so the expected value
-    pins down the whole loop rather than just its sum.
+    Building A so that k tile kt contributes a distinct power of two to a known
+    output element makes the result a signature of which K tiles were accumulated:
+    because the weights are +-2**kt, every subset of K tiles produces a different
+    sum, so a skipped tile, a doubled tile or a swapped pair of tiles all give a
+    wrong and diagnosable value rather than one that might coincidentally match.
+
+    The top weight is negative because +2**(GRID_K-1) does not fit in INT8 for
+    GRID_K = 8. Negating it preserves the uniqueness argument, since the binary
+    representation of a signed sum of distinct +-2**kt terms is still unique.
     """
     spi = await bring_up(dut)
 
+    assert gm.GRID_K <= 8, (
+        f"GRID_K={gm.GRID_K} needs a weight of {1 << (gm.GRID_K - 1)}, which does not "
+        f"fit in INT8 with either sign; this test needs GRID_K <= 8"
+    )
+
     # A row 0 carries 1 in the first column of every k tile, zero elsewhere.
-    # B column 0 carries 2**kt in the first row of k tile kt.
+    # B column 0 carries +-2**kt in the first row of k tile kt.
     a = np.zeros((gm.MAT_M, gm.MAT_K), dtype=np.int8)
     b = np.zeros((gm.MAT_K, gm.MAT_N), dtype=np.int8)
+    weights = []
     for kt in range(gm.GRID_K):
         a[0, kt * gm.TILE_K] = 1
-        weight = 1 << kt
-        assert weight <= 127, (
-            f"GRID_K={gm.GRID_K} needs a weight of {weight}, which does not fit in "
-            f"INT8; this test needs GRID_K <= 7"
-        )
+        magnitude = 1 << kt
+        weight = magnitude if magnitude <= 127 else -magnitude
+        weights.append(weight)
         b[kt * gm.TILE_K, 0] = weight
 
-    expected_element = (1 << gm.GRID_K) - 1
+    expected_element = sum(weights)
     expected = gm.matmul_ref(a, b)
     assert int(expected[0, 0]) == expected_element, (
-        f"the model says element (0,0) is {expected[0, 0]}, the bit mask says "
+        f"the model says element (0,0) is {expected[0, 0]}, the weight sum says "
         f"{expected_element}"
     )
 
@@ -145,7 +154,7 @@ async def test_k_tile_accumulation_is_complete(dut):
         assert not (status & gm.ST_MISMATCH), (
             f"candidate {engine} ({gm.ENGINE_NAMES[engine]}) did not accumulate all "
             f"{gm.GRID_K} K tiles; expected element (0,0) = {expected_element} "
-            f"(binary {expected_element:0{gm.GRID_K}b})"
+            f"from K tile weights {weights}"
         )
 
     dut._log.info(
