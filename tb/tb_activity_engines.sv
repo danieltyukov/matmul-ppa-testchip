@@ -95,13 +95,13 @@ module tb_activity_engines;
     // now an error.
     for (e = 0; e < n_tiles * A_ELEMS; e++) begin
       if (^a_mem[e] === 1'bx) begin
-        $fatal(1, "%s: a_mem[%0d] is x after reading %s. The stimulus file is missing or shorter than %0d bytes.",
+        $fatal(1, "%s: a_mem[%0d] is x after reading %s: missing or short, need %0d bytes",
                "tb_activity_engines", e, a_path, n_tiles * A_ELEMS);
       end
     end
     for (e = 0; e < n_tiles * B_ELEMS; e++) begin
       if (^b_mem[e] === 1'bx) begin
-        $fatal(1, "%s: b_mem[%0d] is x after reading %s. The stimulus file is missing or shorter than %0d bytes.",
+        $fatal(1, "%s: b_mem[%0d] is x after reading %s: missing or short, need %0d bytes",
                "tb_activity_engines", e, b_path, n_tiles * B_ELEMS);
       end
     end
