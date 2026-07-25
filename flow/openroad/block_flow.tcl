@@ -71,6 +71,14 @@ set_input_transition 0.30 [all_inputs]
 set_load 0.03 [all_outputs]
 set_false_path -from [get_ports rst_ni]
 
+# launch_i reaches every accumulator register: 512 flops for a 4x4 tile of INT32, plus
+# the control logic. Without a fanout limit, repair_design leaves it as one enormous net
+# and the detailed router spends a very long time in its pin query before it starts
+# routing. A fanout limit makes the resizer build a buffer tree instead, which is what
+# the net needs anyway.
+set_max_fanout 20 [current_design]
+set_max_transition 1.5 [current_design]
+
 # ---------------------------------------------------------------------------
 # Floorplan, sized from the cell area the netlist actually needs.
 # ---------------------------------------------------------------------------

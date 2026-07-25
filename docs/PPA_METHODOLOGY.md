@@ -28,15 +28,38 @@ Run, and committed:
   a reference before their activity is counted.
 - The switching-activity sweep, at RTL and at gate level.
 
-Not run:
+Partly run:
 
-- **Place and route.** OpenROAD is not installed in this environment and the IHP
-  SG13G2 physical views (tech LEF, cell LEF, IO cells, SRAM macros) are not
-  available. `flow/` contains a complete OpenROAD script sequence and
-  `constraints/` contains the SDC, and both are committed, but neither has ever
-  executed. Treat them as untested.
-- **Real power analysis.** That needs a PDK, a placed and routed netlist and a
-  switching activity file. `flow/openroad/finish.tcl` calls `report_power` and takes
+- **Place and route, on one candidate, up to detailed routing.** OpenROAD 26Q3 and the
+  IHP SG13G2 standard cell views became available late in development, so
+  `flow/openroad/block_flow.tcl` was written and run on `engine_booth4`. What completed:
+
+  | Step | Result |
+  |---|---|
+  | Floorplan | 878 um square die, 726,259 um2 core, 45.2 percent utilisation, 30,389 instances |
+  | Pin placement | 781 pins placed, IO net half-perimeter wire length 377,063 um |
+  | Power grid | ring on TopMetal1 and TopMetal2, Metal1 followpin rails |
+  | Global and detailed placement | legal, zero displacement in legalisation |
+  | Clock tree synthesis | complete |
+  | Setup and hold repair | **no setup violations, no hold violations** at the 20 ns target |
+  | Detailed routing | **did not complete** |
+
+  Detailed routing stalls in its pin query. The cause is identifiable: `launch_i` reaches
+  all 512 accumulator registers as a single net, which OpenROAD warns about (DRT-0120),
+  and the block SDC had no fanout limit so the resizer never built a buffer tree for it.
+  `set_max_fanout` is now in the script, but the corrected run has not been completed
+  here, so **there is no GDS and no routed area number in this repository.**
+
+  Five real bugs in the flow were found by running it rather than by reading it: a
+  missing `make_tracks`, an unnamed voltage domain, two deprecated routing arguments, and
+  logic constants arriving as literals rather than tie cells. All five are fixed. Treat
+  the chip-level sequence in `flow/openroad/floorplan.tcl` and its siblings as still
+  untested: it has never been run, and it has a pad ring and SRAM macros that the block
+  flow does not exercise.
+
+Not run:
+- **Real power analysis.** That needs a placed and routed netlist, which does not exist,
+  and a switching activity file. `flow/openroad/finish.tcl` calls `report_power` and takes
   a VCD through `POWER_VCD`, and that is the only place in this repository that
   would produce a power number in watts.
 - **Silicon.** Nothing has been fabricated.

@@ -24,6 +24,9 @@ TARGETS = [
     ("flow", ("*.tcl",)),
     ("constraints", ("*.sdc",)),
 ]
+# Generated output, not source. flow/out holds Tcl written by flow/Makefile and DEF
+# written by OpenROAD, neither of which is anyone's to format.
+SKIP_PARTS = {"out", "build", ".venv"}
 
 
 def main() -> int:
@@ -32,6 +35,8 @@ def main() -> int:
     for root, patterns in TARGETS:
         for pattern in patterns:
             for path in sorted((REPO / root).rglob(pattern)):
+                if SKIP_PARTS & set(path.parts):
+                    continue
                 checked += 1
                 text = path.read_text()
                 rel = path.relative_to(REPO)

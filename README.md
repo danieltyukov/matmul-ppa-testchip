@@ -207,12 +207,19 @@ build replaces those with four compiled SRAM cuts at a fraction of the area.
 
 ![Area estimate](docs/img/floorplan_estimate.png)
 
-**That figure is an area estimate, not a layout.** OpenROAD and the IHP SG13G2
-physical views are not installed in the environment this repository was developed in,
-so no place and route has been run and there is no GDS. The block sizes are
-proportional to synthesised cell counts and the positions are arbitrary. The complete
-OpenROAD script sequence and the SDC constraints are committed in `flow/` and
-`constraints/` and have never been executed; see
+**That figure is an area estimate, not a layout.** The block sizes are proportional to
+synthesised cell counts and the positions are arbitrary.
+
+Place and route was attempted, on one candidate, and got most of the way. With
+OpenROAD 26Q3 and the SG13G2 standard cell views, `engine_booth4` floorplans to an
+**878 um square die at 45.2 percent core utilisation with 30,389 instances**, places
+legally, gets a clock tree, and closes timing at the 20 ns target with **no setup and no
+hold violations**. Detailed routing does not complete: `launch_i` reaches all 512
+accumulator registers as one net and the block SDC had no fanout limit, so the resizer
+never buffered it. That fix is now in the script but the corrected run has not been
+completed here, so **there is no GDS and no routed area number in this repository**, and
+the whole-chip sequence with its pad ring and SRAM macros has never been run at all.
+Five real bugs in the flow were found by running it. The full account is in
 [what has and has not been run](docs/PPA_METHODOLOGY.md#what-has-and-has-not-been-run).
 
 ---
@@ -327,7 +334,8 @@ Verilator is available.
 | `make power` | no | run, results committed |
 | `make images` | no | run, figures committed |
 | `make synth-pdk` | yes, `SG13G2_LIB` | run, results committed under `results/synth/sg13g2/` |
-| `make flow` | yes, plus OpenROAD | **not run: OpenROAD is not installed and the physical views are unavailable** |
+| `make -C flow block` | yes, plus OpenROAD | **partly run on one candidate: through clock tree synthesis and timing closure with no violations, detailed routing did not complete** |
+| `make flow` (whole chip) | yes, plus OpenROAD | **not run** |
 
 ```bash
 tools/fetch_pdk.sh        # sparse clone of the views the flow needs
@@ -392,9 +400,10 @@ It has never been run against silicon, because nothing has been fabricated.
 Collected in one place, because a benchmark repository that overstates its numbers is
 worse than no benchmark at all.
 
-- **No layout exists.** OpenROAD and the SG13G2 physical views are not installed here.
-  `docs/img/floorplan_estimate.png` is a cell-count treemap, labelled as an estimate
-  on its face.
+- **No layout exists.** Place and route was run on one candidate through clock tree
+  synthesis and timing closure, but detailed routing did not complete, so there is no
+  GDS. `docs/img/floorplan_estimate.png` is a cell-count treemap, labelled as an
+  estimate on its face.
 - **Yosys generic cell counts are not PDK area.** They are unit-cost gates. Gate
   equivalents weight them by static CMOS transistor counts, which is technology
   independent and still not area.
@@ -404,8 +413,9 @@ worse than no benchmark at all.
 - **Logic depth is a gate count, not a delay.** No cell timing is involved.
 - **The power number is a transition count, not watts.** Its known biases are listed in
   the methodology document, with glitch power called out as the largest.
-- **The 50 MHz clock target in the SDC is not a measured maximum frequency.** No timing
-  analysis has been run.
+- **The 50 MHz clock target in the SDC is not a measured maximum frequency.** One
+  candidate met it with no violations after clock tree synthesis on placement-estimated
+  parasitics. That is not a routed timing result and it says nothing about the chip.
 - **Nothing has been fabricated.**
 
 ## Licence
