@@ -1,0 +1,26 @@
+
+38. Printing statistics.
+
+=== engine_wallace ===
+
+   Number of wires:              46023
+   Number of wire bits:          46794
+   Number of public wires:          10
+   Number of public wire bits:     781
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              46526
+     $_ANDNOT_                   17690
+     $_AND_                       4379
+     $_DFFE_PN0P_                  512
+     $_DFF_PN0_                      1
+     $_MUX_                         64
+     $_NAND_                      1951
+     $_NOR_                       1874
+     $_NOT_                        684
+     $_ORNOT_                      818
+     $_OR_                        6249
+     $_XNOR_                      3951
+     $_XOR_                       8353
+

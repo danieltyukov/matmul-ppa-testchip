@@ -1,0 +1,217 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 800" width="1240" height="800" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="SPI command set and register map">
+<rect width="1240" height="800" fill="#ffffff"/>
+<text x="32" y="42" font-size="24" fill="#12181f" text-anchor="start" font-weight="700">SPI command set and register map</text>
+<text x="32" y="66" font-size="13" fill="#5a6672" text-anchor="start" font-weight="400">Mode 0, MSB first. Opcode bit 7 selects direction: 0 means the host writes, 1 means the chip answers. Addresses are big endian on the wire, INT32 values are little endian.</text>
+<text x="32" y="118" font-size="16" fill="#12181f" text-anchor="start" font-weight="700">Frame layouts</text>
+<text x="40" y="158" font-size="13" fill="#12181f" text-anchor="start" font-weight="600">memory</text>
+<rect x="190" y="134" width="92" height="34" rx="4" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.5"/>
+<text x="236.0" y="156" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">opcode</text>
+<rect x="288" y="134" width="92" height="34" rx="4" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.5"/>
+<text x="334.0" y="156" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">addr hi</text>
+<rect x="386" y="134" width="92" height="34" rx="4" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.5"/>
+<text x="432.0" y="156" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">addr lo</text>
+<rect x="484" y="134" width="92" height="34" rx="4" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.5"/>
+<text x="530.0" y="156" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">data 0</text>
+<rect x="582" y="134" width="92" height="34" rx="4" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.5"/>
+<text x="628.0" y="156" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">data 1</text>
+<rect x="680" y="134" width="92" height="34" rx="4" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="726.0" y="156" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">...</text>
+<text x="190" y="182" font-size="11" fill="#5a6672" text-anchor="start" font-weight="400">byte address auto-increments; the frame is as long as chip select stays low</text>
+<text x="40" y="220" font-size="13" fill="#12181f" text-anchor="start" font-weight="600">register write</text>
+<rect x="190" y="196" width="92" height="34" rx="4" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.5"/>
+<text x="236.0" y="218" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">opcode</text>
+<rect x="288" y="196" width="92" height="34" rx="4" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.5"/>
+<text x="334.0" y="218" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">value</text>
+<text x="190" y="244" font-size="11" fill="#5a6672" text-anchor="start" font-weight="400">a frame that ends before the value sets the frame error flag</text>
+<text x="40" y="282" font-size="13" fill="#12181f" text-anchor="start" font-weight="600">register read</text>
+<rect x="190" y="258" width="92" height="34" rx="4" fill="#eaf6ec" stroke="#2e7d4f" stroke-width="1.5"/>
+<text x="236.0" y="280" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">opcode</text>
+<rect x="288" y="258" width="92" height="34" rx="4" fill="#eaf6ec" stroke="#2e7d4f" stroke-width="1.5"/>
+<text x="334.0" y="280" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">dummy</text>
+<rect x="386" y="258" width="92" height="34" rx="4" fill="#eaf6ec" stroke="#2e7d4f" stroke-width="1.5"/>
+<text x="432.0" y="280" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">dummy</text>
+<rect x="484" y="258" width="92" height="34" rx="4" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="530.0" y="280" font-size="12" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">...</text>
+<text x="190" y="306" font-size="11" fill="#5a6672" text-anchor="start" font-weight="400">MISO returns 0x00, then payload byte 0, byte 1, ...: one byte of latency</text>
+<text x="32" y="354" font-size="16" fill="#12181f" text-anchor="start" font-weight="700">Opcodes</text>
+<text x="40" y="370" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="600">opcode</text>
+<text x="112" y="370" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="600">name</text>
+<text x="290" y="370" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="600">payload</text>
+<text x="500" y="370" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="600">effect</text>
+<rect x="34" y="378" width="640" height="22" rx="3" fill="#e8f1fb" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="394" font-size="12" fill="#2f6fb3" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x00</text>
+<text x="112" y="394" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_NOP</text>
+<text x="290" y="394" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">-</text>
+<text x="500" y="394" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">accepted, does nothing</text>
+<rect x="34" y="402" width="640" height="22" rx="3" fill="#e8f1fb" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="418" font-size="12" fill="#2f6fb3" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x01</text>
+<text x="112" y="418" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_WR_A</text>
+<text x="290" y="418" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">addr + up to 1024 B</text>
+<text x="500" y="418" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">write operand A</text>
+<rect x="34" y="426" width="640" height="22" rx="3" fill="#e8f1fb" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="442" font-size="12" fill="#2f6fb3" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x02</text>
+<text x="112" y="442" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_WR_B</text>
+<text x="290" y="442" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">addr + up to 1024 B</text>
+<text x="500" y="442" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">write operand B</text>
+<rect x="34" y="450" width="640" height="22" rx="3" fill="#e8f1fb" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="466" font-size="12" fill="#2f6fb3" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x03</text>
+<text x="112" y="466" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_WR_REF</text>
+<text x="290" y="466" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">addr + up to 4096 B</text>
+<text x="500" y="466" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">write the golden reference</text>
+<rect x="34" y="474" width="640" height="22" rx="3" fill="#e8f1fb" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="490" font-size="12" fill="#2f6fb3" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x08</text>
+<text x="112" y="490" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_WR_ENGINE</text>
+<text x="290" y="490" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">1 B</text>
+<text x="500" y="490" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">select candidate 0..4</text>
+<rect x="34" y="498" width="640" height="22" rx="3" fill="#e8f1fb" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="514" font-size="12" fill="#2f6fb3" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x09</text>
+<text x="112" y="514" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_WR_TRIG</text>
+<text x="290" y="514" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">1 B</text>
+<text x="500" y="514" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">trigger bits, see below</text>
+<rect x="34" y="522" width="640" height="22" rx="3" fill="#e8f1fb" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="538" font-size="12" fill="#2f6fb3" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x0F</text>
+<text x="112" y="538" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_SOFT_RST</text>
+<text x="290" y="538" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">1 B = 0x5A</text>
+<text x="500" y="538" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">soft reset the datapath</text>
+<rect x="34" y="546" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="562" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x81</text>
+<text x="112" y="562" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_ID</text>
+<text x="290" y="562" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">4 B</text>
+<text x="500" y="562" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">0x4D500102</text>
+<rect x="34" y="570" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="586" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x82</text>
+<text x="112" y="586" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_STATUS</text>
+<text x="290" y="586" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">1 B</text>
+<text x="500" y="586" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">status byte, see below</text>
+<rect x="34" y="594" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="610" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x83</text>
+<text x="112" y="610" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_PERF</text>
+<text x="290" y="610" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">12 B</text>
+<text x="500" y="610" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">cycles, MACs, mismatches, first index</text>
+<rect x="34" y="618" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="634" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x84</text>
+<text x="112" y="634" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_C</text>
+<text x="290" y="634" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">addr + up to 4096 B</text>
+<text x="500" y="634" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">read the result</text>
+<rect x="34" y="642" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="658" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x85</text>
+<text x="112" y="658" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_A</text>
+<text x="290" y="658" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">addr + up to 1024 B</text>
+<text x="500" y="658" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">read back operand A</text>
+<rect x="34" y="666" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="682" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x86</text>
+<text x="112" y="682" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_B</text>
+<text x="290" y="682" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">addr + up to 1024 B</text>
+<text x="500" y="682" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">read back operand B</text>
+<rect x="34" y="690" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="706" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x87</text>
+<text x="112" y="706" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_CFG</text>
+<text x="290" y="706" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">10 B</text>
+<text x="500" y="706" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">geometry discovery</text>
+<rect x="34" y="714" width="640" height="22" rx="3" fill="#eaf6ec" fill-opacity="0.55" stroke="none"/>
+<text x="40" y="730" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0x88</text>
+<text x="112" y="730" font-size="12" fill="#12181f" text-anchor="start" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_REF</text>
+<text x="290" y="730" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">addr + up to 4096 B</text>
+<text x="500" y="730" font-size="11.5" fill="#12181f" text-anchor="start" font-weight="400">read back the reference</text>
+<text x="40" y="756" font-size="11.5" fill="#b03d3d" text-anchor="start" font-weight="400">Any other opcode sets the sticky command error bit and the rest of the frame is ignored.</text>
+<text x="712" y="100" font-size="16" fill="#12181f" text-anchor="start" font-weight="700">Bit fields</text>
+<text x="712" y="140" font-size="13.5" fill="#12181f" text-anchor="start" font-weight="600" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_STATUS</text>
+<rect x="712" y="152" width="56" height="34" fill="#f4f6f8" stroke="#5a6672" stroke-width="1.4"/>
+<text x="740.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">7</text>
+<text x="740.0" y="173" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">0</text>
+<rect x="768" y="152" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="796.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">6</text>
+<text x="796.0" y="173" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">frame err</text>
+<rect x="824" y="152" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="852.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">5</text>
+<text x="852.0" y="173" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">cmd err</text>
+<rect x="880" y="152" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="908.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">4</text>
+<text x="908.0" y="173" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">mismatch</text>
+<rect x="936" y="152" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="964.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">3</text>
+<text x="964.0" y="173" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">vfy done</text>
+<rect x="992" y="152" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="1020.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">2</text>
+<text x="1020.0" y="173" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">vfy busy</text>
+<rect x="1048" y="152" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="1076.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">1</text>
+<text x="1076.0" y="173" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">done</text>
+<rect x="1104" y="152" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="1132.0" y="150" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">0</text>
+<text x="1132.0" y="173" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">busy</text>
+<text x="712" y="202" font-size="11" fill="#5a6672" text-anchor="start" font-weight="400">cmd err and frame err are sticky; clear them with TRIG_CLR_STICKY</text>
+<text x="712" y="244" font-size="13.5" fill="#12181f" text-anchor="start" font-weight="600" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_WR_TRIG</text>
+<rect x="712" y="256" width="56" height="34" fill="#f4f6f8" stroke="#5a6672" stroke-width="1.4"/>
+<text x="740.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">7</text>
+<text x="740.0" y="277" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">0</text>
+<rect x="768" y="256" width="56" height="34" fill="#f4f6f8" stroke="#5a6672" stroke-width="1.4"/>
+<text x="796.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">6</text>
+<text x="796.0" y="277" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">0</text>
+<rect x="824" y="256" width="56" height="34" fill="#f4f6f8" stroke="#5a6672" stroke-width="1.4"/>
+<text x="852.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">5</text>
+<text x="852.0" y="277" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">0</text>
+<rect x="880" y="256" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="908.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">4</text>
+<text x="908.0" y="277" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">clr sticky</text>
+<rect x="936" y="256" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="964.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">3</text>
+<text x="964.0" y="277" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">clr perf</text>
+<rect x="992" y="256" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="1020.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">2</text>
+<text x="1020.0" y="277" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">verify</text>
+<rect x="1048" y="256" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="1076.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">1</text>
+<text x="1076.0" y="277" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">clr C</text>
+<rect x="1104" y="256" width="56" height="34" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.4"/>
+<text x="1132.0" y="254" font-size="10" fill="#5a6672" text-anchor="middle" font-weight="400">0</text>
+<text x="1132.0" y="277" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">run</text>
+<text x="712" y="306" font-size="11" fill="#5a6672" text-anchor="start" font-weight="400">run, verify and clr C are refused while the chip is busy and set cmd err</text>
+<text x="712" y="354" font-size="13.5" fill="#12181f" text-anchor="start" font-weight="600" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_PERF payload, 12 bytes</text>
+<rect x="712" y="366" width="204" height="34" rx="3" fill="#dbeafe" stroke="#2f6fb3" stroke-width="1.4"/>
+<text x="814.0" y="382" font-size="10.5" fill="#12181f" text-anchor="middle" font-weight="400">cycle count</text>
+<text x="814.0" y="394" font-size="9" fill="#5a6672" text-anchor="middle" font-weight="400">4 B</text>
+<rect x="920" y="366" width="204" height="34" rx="3" fill="#dcfce7" stroke="#2e7d4f" stroke-width="1.4"/>
+<text x="1022.0" y="382" font-size="10.5" fill="#12181f" text-anchor="middle" font-weight="400">MAC count</text>
+<text x="1022.0" y="394" font-size="9" fill="#5a6672" text-anchor="middle" font-weight="400">4 B</text>
+<rect x="1128" y="366" width="102" height="34" rx="3" fill="#fee2e2" stroke="#b03d3d" stroke-width="1.4"/>
+<text x="1179.0" y="382" font-size="10.5" fill="#12181f" text-anchor="middle" font-weight="400">mismatch</text>
+<text x="1179.0" y="394" font-size="9" fill="#5a6672" text-anchor="middle" font-weight="400">2 B</text>
+<rect x="1234" y="366" width="102" height="34" rx="3" fill="#fef3c7" stroke="#b5761f" stroke-width="1.4"/>
+<text x="1285.0" y="382" font-size="10.5" fill="#12181f" text-anchor="middle" font-weight="400">first idx</text>
+<text x="1285.0" y="394" font-size="9" fill="#5a6672" text-anchor="middle" font-weight="400">2 B</text>
+<text x="712" y="416" font-size="11" fill="#5a6672" text-anchor="start" font-weight="400">each field little endian; counters saturate rather than wrap</text>
+<text x="712" y="450" font-size="13.5" fill="#12181f" text-anchor="start" font-weight="600" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">OP_RD_CFG payload, 10 bytes</text>
+<rect x="712" y="466" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="754" y="482" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">MAT_M</text>
+<text x="754" y="497" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">32</text>
+<rect x="802" y="466" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="844" y="482" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">MAT_N</text>
+<text x="844" y="497" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">32</text>
+<rect x="892" y="466" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="934" y="482" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">MAT_K</text>
+<text x="934" y="497" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">32</text>
+<rect x="982" y="466" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="1024" y="482" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">TILE_M</text>
+<text x="1024" y="497" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">4</text>
+<rect x="1072" y="466" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="1114" y="482" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">TILE_N</text>
+<text x="1114" y="497" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">4</text>
+<rect x="712" y="512" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="754" y="528" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">TILE_K</text>
+<text x="754" y="543" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">4</text>
+<rect x="802" y="512" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="844" y="528" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">OPERAND_W</text>
+<text x="844" y="543" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">8</text>
+<rect x="892" y="512" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="934" y="528" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">ACC_W</text>
+<text x="934" y="543" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">32</text>
+<rect x="982" y="512" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="1024" y="528" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">ENGINES</text>
+<text x="1024" y="543" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">5</text>
+<rect x="1072" y="512" width="84" height="38" rx="4" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.3"/>
+<text x="1114" y="528" font-size="9.5" fill="#6b4fa8" text-anchor="middle" font-weight="600">SELECTED</text>
+<text x="1114" y="543" font-size="13" fill="#12181f" text-anchor="middle" font-weight="400" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">0</text>
+<text x="712" y="574" font-size="11" fill="#5a6672" text-anchor="start" font-weight="400">a host reads this first and sizes its transfers from it, so host tooling survives a geometry change</text>
+<text x="32" y="780" font-size="11.5" fill="#5a6672" text-anchor="start" font-weight="400">Generated by tools/svg_memory_map.py from the same constants the protocol tests assert against the chip</text>
+</svg>

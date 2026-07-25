@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 1020" width="1300" height="1020" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-label="Block diagram of the matmul PPA test chip">
+<defs><marker id="arrow-8b98a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b98a5"/></marker><marker id="arrow-2f6fb3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2f6fb3"/></marker><marker id="arrow-2e7d4f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2e7d4f"/></marker><marker id="arrow-b5761f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b5761f"/></marker><marker id="arrow-6b4fa8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b4fa8"/></marker><marker id="arrow-b03d3d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b03d3d"/></marker></defs>
+<rect width="1300" height="1020" fill="#ffffff"/>
+<text x="32" y="42" font-size="25" font-weight="700" fill="#12181f">matmul-ppa-testchip</text>
+<text x="32" y="66" font-size="13.5" fill="#5a6672">INT8 GEMM candidate benchmark, IHP SG13G2 130 nm target. A is 32x32, B is 32x32, C = A B in INT32. Tile 4x4x4, tile grid 8x8x8, 32768 MACs per run.</text>
+<rect x="24" y="86" width="1252" height="864" rx="16" fill="#f4f6f8" stroke="#5a6672" stroke-width="2"/>
+<text x="42" y="110" font-size="12.5" font-weight="700" letter-spacing="1.2" fill="#5a6672">PAD FRAME (pad_frame.sv, IHP IO cell hook)</text>
+<rect x="40" y="140" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="62" y="152" font-size="12.5" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_clk_i</text>
+<text x="62" y="166" text-anchor="start" font-size="10.5" fill="#5a6672" font-weight="400">core clock</text>
+<rect x="40" y="176" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="62" y="188" font-size="12.5" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_rst_ni</text>
+<text x="62" y="202" text-anchor="start" font-size="10.5" fill="#5a6672" font-weight="400">async reset, active low</text>
+<rect x="40" y="212" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="62" y="224" font-size="12.5" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_test_mode_i</text>
+<text x="62" y="238" text-anchor="start" font-size="10.5" fill="#5a6672" font-weight="400">ungate every clock</text>
+<rect x="40" y="248" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="62" y="260" font-size="12.5" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_spi_sck_i</text>
+<text x="62" y="274" text-anchor="start" font-size="10.5" fill="#5a6672" font-weight="400">SPI clock, Mode 0</text>
+<rect x="40" y="284" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="62" y="296" font-size="12.5" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_spi_cs_ni</text>
+<text x="62" y="310" text-anchor="start" font-size="10.5" fill="#5a6672" font-weight="400">chip select, active low</text>
+<rect x="40" y="320" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="62" y="332" font-size="12.5" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_spi_mosi_i</text>
+<text x="62" y="346" text-anchor="start" font-size="10.5" fill="#5a6672" font-weight="400">host to chip</text>
+<rect x="40" y="356" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="62" y="368" font-size="12.5" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_spi_miso_io</text>
+<text x="62" y="382" text-anchor="start" font-size="10.5" fill="#5a6672" font-weight="400">chip to host, tristate</text>
+<rect x="196" y="122" width="236" height="248" rx="12" fill="none" stroke="#2f6fb3" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.8"/>
+<text x="210" y="141" font-size="12.5" font-weight="700" letter-spacing="1.2" fill="#2f6fb3">HOST INTERFACE</text>
+<rect x="212" y="148" width="204" height="86" rx="8" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.8"/>
+<text x="314" y="172" text-anchor="middle" font-size="17" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">spi_target</text>
+<text x="314" y="191" text-anchor="middle" font-size="12.5" fill="#5a6672">Mode 0, MSB first, 8 bit</text>
+<text x="314" y="207" text-anchor="middle" font-size="12.5" fill="#5a6672">pins oversampled in the core domain</text>
+<text x="314" y="223" text-anchor="middle" font-size="12.5" fill="#5a6672">f_spi &lt;= f_core / 8</text>
+<path d="M 314 234 L 314 254" stroke="#2f6fb3" stroke-width="1.8" fill="none" marker-end="url(#arrow-2f6fb3)"/>
+<rect x="212" y="254" width="204" height="100" rx="8" fill="#e8f1fb" stroke="#2f6fb3" stroke-width="1.8"/>
+<text x="314" y="278" text-anchor="middle" font-size="17" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">frame_router</text>
+<text x="314" y="297" text-anchor="middle" font-size="12.5" fill="#5a6672">opcode, 16 bit addr, payload</text>
+<text x="314" y="313" text-anchor="middle" font-size="12.5" fill="#5a6672">auto-increment, prefetched reads</text>
+<text x="314" y="329" text-anchor="middle" font-size="12.5" fill="#5a6672">range check, truncation detect</text>
+<text x="314" y="345" text-anchor="middle" font-size="12.5" fill="#5a6672">refuses store access while busy</text>
+<rect x="456" y="122" width="268" height="378" rx="12" fill="none" stroke="#2e7d4f" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.8"/>
+<text x="470" y="141" font-size="12.5" font-weight="700" letter-spacing="1.2" fill="#2e7d4f">OPERAND AND RESULT STORAGE</text>
+<rect x="472" y="150" width="236" height="64" rx="8" fill="#eaf6ec" stroke="#2e7d4f" stroke-width="1.8"/>
+<text x="590" y="174" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">store A</text>
+<text x="590" y="193" text-anchor="middle" font-size="11.5" fill="#5a6672">32x32 INT8, 1 KiB</text>
+<text x="590" y="209" text-anchor="middle" font-size="11.5" fill="#5a6672">256 x 32 bit words</text>
+<rect x="472" y="232" width="236" height="64" rx="8" fill="#eaf6ec" stroke="#2e7d4f" stroke-width="1.8"/>
+<text x="590" y="256" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">store B</text>
+<text x="590" y="275" text-anchor="middle" font-size="11.5" fill="#5a6672">32x32 INT8, 1 KiB</text>
+<text x="590" y="291" text-anchor="middle" font-size="11.5" fill="#5a6672">256 x 32 bit words</text>
+<rect x="472" y="314" width="236" height="64" rx="8" fill="#eaf6ec" stroke="#2e7d4f" stroke-width="1.8"/>
+<text x="590" y="338" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">store C</text>
+<text x="590" y="357" text-anchor="middle" font-size="11.5" fill="#5a6672">32x32 INT32, 4 KiB</text>
+<text x="590" y="373" text-anchor="middle" font-size="11.5" fill="#5a6672">256 x 128 bit words</text>
+<rect x="472" y="396" width="236" height="64" rx="8" fill="#eaf6ec" stroke="#2e7d4f" stroke-width="1.8"/>
+<text x="590" y="420" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">store REF</text>
+<text x="590" y="439" text-anchor="middle" font-size="11.5" fill="#5a6672">golden C, loaded by the host</text>
+<text x="590" y="455" text-anchor="middle" font-size="11.5" fill="#5a6672">read by the on-chip comparator</text>
+<path d="M 416 300 L 444 300" stroke="#2f6fb3" stroke-width="1.8" fill="none" marker-end="url(#arrow-2f6fb3)"/>
+<path d="M 444 178 L 444 460" stroke="#2f6fb3" stroke-width="1.8" fill="none"/>
+<path d="M 444 178 L 472 178" stroke="#2f6fb3" stroke-width="1.8" fill="none" marker-end="url(#arrow-2f6fb3)" marker-start="url(#arrow-2f6fb3)"/>
+<path d="M 444 260 L 472 260" stroke="#2f6fb3" stroke-width="1.8" fill="none" marker-end="url(#arrow-2f6fb3)" marker-start="url(#arrow-2f6fb3)"/>
+<path d="M 444 342 L 472 342" stroke="#2f6fb3" stroke-width="1.8" fill="none" marker-end="url(#arrow-2f6fb3)" marker-start="url(#arrow-2f6fb3)"/>
+<path d="M 444 424 L 472 424" stroke="#2f6fb3" stroke-width="1.8" fill="none" marker-end="url(#arrow-2f6fb3)" marker-start="url(#arrow-2f6fb3)"/>
+<text x="444" y="484" text-anchor="middle" font-size="10.5" fill="#2f6fb3" font-weight="400">host byte port</text>
+<text x="600" y="481" text-anchor="start" font-size="10.5" fill="#2e7d4f" font-weight="400">sram_1rw: one port, byte enables, one cycle read</text>
+<text x="600" y="494" text-anchor="start" font-size="10.5" fill="#2e7d4f" font-weight="400">PDK macro hook at this boundary</text>
+<rect x="456" y="528" width="268" height="182" rx="12" fill="none" stroke="#b5761f" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.8"/>
+<text x="470" y="547" font-size="12.5" font-weight="700" letter-spacing="1.2" fill="#b5761f">SEQUENCING</text>
+<rect x="472" y="556" width="236" height="140" rx="8" fill="#fff3e0" stroke="#b5761f" stroke-width="1.8"/>
+<text x="590" y="580" text-anchor="middle" font-size="17" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">gemm_sequencer</text>
+<text x="590" y="599" text-anchor="middle" font-size="12.5" fill="#5a6672">output-stationary tile loops</text>
+<text x="590" y="615" text-anchor="middle" font-size="12.5" fill="#5a6672">8 x 8 output tiles,</text>
+<text x="590" y="631" text-anchor="middle" font-size="12.5" fill="#5a6672">8 K tiles accumulated each</text>
+<text x="590" y="647" text-anchor="middle" font-size="12.5" fill="#5a6672">fetch, launch, wait, write back</text>
+<text x="590" y="663" text-anchor="middle" font-size="12.5" fill="#5a6672">ready/valid: no assumed latency</text>
+<path d="M 590 500 L 590 556" stroke="#2e7d4f" stroke-width="1.8" fill="none" marker-end="url(#arrow-2e7d4f)" marker-start="url(#arrow-2e7d4f)"/>
+<text x="602" y="520" text-anchor="start" font-size="10.5" fill="#2e7d4f" font-weight="400">tile words, C write back</text>
+<path d="M 314 354 L 314 620 L 472 620" stroke="#b5761f" stroke-width="1.8" fill="none" marker-end="url(#arrow-b5761f)"/>
+<text x="392" y="612" text-anchor="middle" font-size="11" fill="#b5761f" font-weight="400">run, clear, verify</text>
+<rect x="748" y="122" width="336" height="588" rx="12" fill="none" stroke="#6b4fa8" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.8"/>
+<text x="762" y="141" font-size="12.5" font-weight="700" letter-spacing="1.2" fill="#6b4fa8">CANDIDATE ENGINES</text>
+<rect x="790" y="150" width="278" height="50" rx="6" fill="#ffffff" stroke="#6b4fa8" stroke-width="1.8"/>
+<text x="929" y="174" text-anchor="middle" font-size="13.5" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">engine_infer</text>
+<text x="929" y="193" text-anchor="middle" font-size="10.5" fill="#5a6672">inferred * and +, synthesiser's choice, 1 cycle</text>
+<text x="766" y="168" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="700">0</text>
+<rect x="790" y="210" width="278" height="50" rx="6" fill="#ffffff" stroke="#6b4fa8" stroke-width="1.8"/>
+<text x="929" y="234" text-anchor="middle" font-size="13.5" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">engine_wallace</text>
+<text x="929" y="253" text-anchor="middle" font-size="10.5" fill="#5a6672">signed partial products, 3:2 CSA tree, 1 cycle</text>
+<text x="766" y="228" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="700">1</text>
+<rect x="790" y="270" width="278" height="50" rx="6" fill="#ffffff" stroke="#6b4fa8" stroke-width="1.8"/>
+<text x="929" y="294" text-anchor="middle" font-size="13.5" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">engine_booth4</text>
+<text x="929" y="313" text-anchor="middle" font-size="10.5" fill="#5a6672">radix-4 Booth recoding, 3:2 CSA tree, 1 cycle</text>
+<text x="766" y="288" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="700">2</text>
+<rect x="790" y="330" width="278" height="50" rx="6" fill="#ffffff" stroke="#6b4fa8" stroke-width="1.8"/>
+<text x="929" y="354" text-anchor="middle" font-size="13.5" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">engine_signmag</text>
+<text x="929" y="373" text-anchor="middle" font-size="10.5" fill="#5a6672">sign-magnitude datapath, unsigned array, 1 cycle</text>
+<text x="766" y="348" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="700">3</text>
+<rect x="790" y="390" width="278" height="50" rx="6" fill="#ffffff" stroke="#6b4fa8" stroke-width="1.8"/>
+<text x="929" y="414" text-anchor="middle" font-size="13.5" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">engine_bitserial</text>
+<text x="929" y="433" text-anchor="middle" font-size="10.5" fill="#5a6672">Horner over 8 bit planes, 8 cycles</text>
+<text x="766" y="408" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="700">4</text>
+<path d="M 778 178 L 778 612" stroke="#6b4fa8" stroke-width="1.8" fill="none"/>
+<path d="M 778 175 L 790 175" stroke="#6b4fa8" stroke-width="1.8" fill="none" marker-end="url(#arrow-6b4fa8)" marker-start="url(#arrow-6b4fa8)"/>
+<path d="M 778 235 L 790 235" stroke="#6b4fa8" stroke-width="1.8" fill="none" marker-end="url(#arrow-6b4fa8)" marker-start="url(#arrow-6b4fa8)"/>
+<path d="M 778 295 L 790 295" stroke="#6b4fa8" stroke-width="1.8" fill="none" marker-end="url(#arrow-6b4fa8)" marker-start="url(#arrow-6b4fa8)"/>
+<path d="M 778 355 L 790 355" stroke="#6b4fa8" stroke-width="1.8" fill="none" marker-end="url(#arrow-6b4fa8)" marker-start="url(#arrow-6b4fa8)"/>
+<path d="M 778 415 L 790 415" stroke="#6b4fa8" stroke-width="1.8" fill="none" marker-end="url(#arrow-6b4fa8)" marker-start="url(#arrow-6b4fa8)"/>
+<rect x="764" y="612" width="304" height="84" rx="8" fill="#f3ecfb" stroke="#6b4fa8" stroke-width="1.8"/>
+<text x="916" y="636" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">engine_array</text>
+<text x="916" y="655" text-anchor="middle" font-size="11.5" fill="#5a6672">runtime select, one of five</text>
+<text x="916" y="671" text-anchor="middle" font-size="11.5" fill="#5a6672">integrated clock gate per candidate</text>
+<text x="916" y="687" text-anchor="middle" font-size="11.5" fill="#5a6672">operand and control isolation</text>
+<path d="M 708 654 L 764 654" stroke="#b5761f" stroke-width="1.8" fill="none" marker-end="url(#arrow-b5761f)" marker-start="url(#arrow-b5761f)"/>
+<text x="736" y="636" text-anchor="middle" font-size="9.5" fill="#b5761f" font-weight="400">a, b</text>
+<text x="736" y="646" text-anchor="middle" font-size="9.5" fill="#b5761f" font-weight="400">launch</text>
+<text x="736" y="674" text-anchor="middle" font-size="9.5" fill="#b5761f" font-weight="400">ready</text>
+<text x="736" y="684" text-anchor="middle" font-size="9.5" fill="#b5761f" font-weight="400">valid</text>
+<text x="916" y="532" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="400">one identical interface for every candidate:</text>
+<text x="916" y="546" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="400">launch, ready, valid, mac_tick, a_tile, b_tile, c_tile</text>
+<text x="916" y="566" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="400">shared acc_bank keeps the output tile resident across the K loop</text>
+<text x="916" y="586" text-anchor="middle" font-size="10.5" fill="#6b4fa8" font-weight="600">adding a sixth candidate touches only this column</text>
+<rect x="196" y="752" width="888" height="170" rx="12" fill="none" stroke="#b03d3d" stroke-width="1.2" stroke-dasharray="6 4" opacity="0.8"/>
+<text x="210" y="771" font-size="12.5" font-weight="700" letter-spacing="1.2" fill="#b03d3d">MEASUREMENT</text>
+<rect x="212" y="778" width="252" height="84" rx="8" fill="#fdecec" stroke="#b03d3d" stroke-width="1.8"/>
+<text x="338" y="802" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">cycle_meter</text>
+<text x="338" y="821" text-anchor="middle" font-size="11.5" fill="#5a6672">counts while the sequencer runs</text>
+<text x="338" y="837" text-anchor="middle" font-size="11.5" fill="#5a6672">cleared by a run, saturating</text>
+<rect x="480" y="778" width="252" height="84" rx="8" fill="#fdecec" stroke="#b03d3d" stroke-width="1.8"/>
+<text x="606" y="802" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">mac_meter</text>
+<text x="606" y="821" text-anchor="middle" font-size="11.5" fill="#5a6672">sums mac_tick every cycle</text>
+<text x="606" y="837" text-anchor="middle" font-size="11.5" fill="#5a6672">expected 32768 per run</text>
+<rect x="748" y="778" width="320" height="84" rx="8" fill="#fdecec" stroke="#b03d3d" stroke-width="1.8"/>
+<text x="908" y="802" text-anchor="middle" font-size="15" font-weight="600" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">result_checker</text>
+<text x="908" y="821" text-anchor="middle" font-size="11.5" fill="#5a6672">walks store C against store REF</text>
+<text x="908" y="837" text-anchor="middle" font-size="11.5" fill="#5a6672">mismatch count and first index</text>
+<text x="640" y="900" text-anchor="middle" font-size="11" fill="#b03d3d" font-weight="400">read back over SPI with OP_RD_PERF and OP_RD_STATUS; also exposed on four status pads</text>
+<path d="M 456 460 L 436 460 L 436 722 L 830 722 L 830 778" stroke="#2e7d4f" stroke-width="1.8" fill="none" stroke-dasharray="5 4" marker-end="url(#arrow-2e7d4f)"/>
+<text x="468" y="715" text-anchor="start" font-size="10.5" fill="#2e7d4f" font-weight="400">C and REF words</text>
+<path d="M 540 696 L 540 736 L 338 736 L 338 778" stroke="#b5761f" stroke-width="1.8" fill="none" marker-end="url(#arrow-b5761f)"/>
+<text x="430" y="730" text-anchor="middle" font-size="11" fill="#b5761f" font-weight="400">busy</text>
+<path d="M 916 696 L 916 750 L 606 750 L 606 778" stroke="#6b4fa8" stroke-width="1.8" fill="none" marker-end="url(#arrow-6b4fa8)"/>
+<text x="760" y="744" text-anchor="middle" font-size="11" fill="#6b4fa8" font-weight="400">mac_tick</text>
+<rect x="1246" y="790" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="1238" y="802" text-anchor="end" font-size="11" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_stat_busy_o</text>
+<rect x="1246" y="816" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="1238" y="828" text-anchor="end" font-size="11" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_stat_done_o</text>
+<rect x="1246" y="842" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="1238" y="854" text-anchor="end" font-size="11" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_stat_vfy_done_o</text>
+<rect x="1246" y="868" width="14" height="14" rx="3" fill="#ffffff" stroke="#5a6672" stroke-width="1.5"/>
+<text x="1238" y="880" text-anchor="end" font-size="11" fill="#12181f" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">pad_stat_mismatch_o</text>
+<path d="M 1068 828 L 1140 828" stroke="#b03d3d" stroke-width="1.8" fill="none" marker-end="url(#arrow-b03d3d)"/>
+<rect x="212" y="980" width="13" height="13" rx="3" fill="#2f6fb3" opacity="0.9"/>
+<text x="232" y="991" text-anchor="start" font-size="12" fill="#5a6672" font-weight="400">host interface</text>
+<rect x="362" y="980" width="13" height="13" rx="3" fill="#2e7d4f" opacity="0.9"/>
+<text x="382" y="991" text-anchor="start" font-size="12" fill="#5a6672" font-weight="400">storage</text>
+<rect x="512" y="980" width="13" height="13" rx="3" fill="#b5761f" opacity="0.9"/>
+<text x="532" y="991" text-anchor="start" font-size="12" fill="#5a6672" font-weight="400">sequencing</text>
+<rect x="662" y="980" width="13" height="13" rx="3" fill="#6b4fa8" opacity="0.9"/>
+<text x="682" y="991" text-anchor="start" font-size="12" fill="#5a6672" font-weight="400">candidate engines</text>
+<rect x="812" y="980" width="13" height="13" rx="3" fill="#b03d3d" opacity="0.9"/>
+<text x="832" y="991" text-anchor="start" font-size="12" fill="#5a6672" font-weight="400">measurement</text>
+<text x="1268" y="991" text-anchor="end" font-size="11" fill="#5a6672" font-weight="400">double-headed arrows are bidirectional</text>
+</svg>

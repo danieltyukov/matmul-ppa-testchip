@@ -111,7 +111,10 @@ if {$mode eq "sg13g2"} {
   opt -full
 
   dfflibmap -liberty $lib
-  abc -liberty $lib -D $abc_clock_ps
+  # -fast bounds ABC's effort. Without it the candidate built from inferred
+  # multipliers takes tens of minutes on its own, and the whole point of this flow
+  # is that every candidate goes through an identical script.
+  abc -fast -liberty $lib -D $abc_clock_ps
   setundef -zero
   splitnets -ports
   opt_clean -purge
@@ -128,7 +131,10 @@ if {$mode eq "sg13g2"} {
   # tools/synth_collect.py from static CMOS transistor counts.
   memory_map
   opt -full
-  abc -g AND,NAND,OR,NOR,XOR,XNOR,ANDNOT,ORNOT,MUX,NMUX,AOI3,OAI3,AOI4,OAI4
+  # A deliberately small gate set: fewer cell types map faster and keep the gate
+  # equivalent model in tools/synth_collect.py simple enough to state exactly.
+  # -fast bounds ABC's effort so every candidate is treated alike.
+  abc -fast -g AND,NAND,OR,NOR,XOR,XNOR,ANDNOT,ORNOT,MUX
   setundef -zero
   opt_clean -purge
 

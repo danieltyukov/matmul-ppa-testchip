@@ -1,0 +1,26 @@
+
+38. Printing statistics.
+
+=== engine_infer ===
+
+   Number of wires:              38979
+   Number of wire bits:          39750
+   Number of public wires:          10
+   Number of public wire bits:     781
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              39482
+     $_ANDNOT_                   10037
+     $_AND_                       5655
+     $_DFFE_PN0P_                  512
+     $_DFF_PN0_                      1
+     $_MUX_                         27
+     $_NAND_                      1590
+     $_NOR_                       1592
+     $_NOT_                       1325
+     $_ORNOT_                     2119
+     $_OR_                        3631
+     $_XNOR_                      2054
+     $_XOR_                      10939
+

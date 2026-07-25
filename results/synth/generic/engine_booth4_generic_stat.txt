@@ -1,0 +1,26 @@
+
+38. Printing statistics.
+
+=== engine_booth4 ===
+
+   Number of wires:              33666
+   Number of wire bits:          34437
+   Number of public wires:          10
+   Number of public wire bits:     781
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              34169
+     $_ANDNOT_                   12178
+     $_AND_                       1457
+     $_DFFE_PN0P_                  512
+     $_DFF_PN0_                      1
+     $_MUX_                       2108
+     $_NAND_                       660
+     $_NOR_                       1008
+     $_NOT_                        931
+     $_ORNOT_                     1218
+     $_OR_                        3995
+     $_XNOR_                      2032
+     $_XOR_                       8069
+

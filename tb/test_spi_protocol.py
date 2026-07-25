@@ -16,6 +16,8 @@ import cocotb
 import numpy as np
 
 import gemm_model as gm
+from cocotb.triggers import ClockCycles
+
 from chip_env import bring_up
 
 
@@ -398,3 +400,79 @@ async def test_spi_clock_ratio_sweep(dut):
         dut._log.info(
             f"protocol verified at f_spi = f_core/{2 * cycles_per_half}"
         )
+
+
+@cocotb.test()
+async def test_capture_timing_trace(dut):
+    """Record a real SPI frame cycle by cycle, for docs/img/spi_frame_timing.svg.
+
+    The timing diagram in the documentation is drawn from this capture rather than
+    from someone's memory of how Mode 0 works, so if the RTL timing changed the
+    figure would change with it. The frame chosen is OP_RD_ID, which is short and
+    exercises the readback path: MISO must be 0x00 during the opcode byte and then
+    the identification bytes.
+    """
+    import json
+    import os
+    import pathlib
+
+    from cocotb.triggers import RisingEdge
+
+    spi = await bring_up(dut)
+
+    samples: list[dict] = []
+    stop = False
+
+    async def sampler():
+        cycle = 0
+        while not stop:
+            await RisingEdge(dut.pad_clk_i)
+            cycle += 1
+            miso_raw = dut.pad_spi_miso_io.value
+            try:
+                miso = int(miso_raw)
+            except ValueError:
+                miso = None          # high impedance while not selected
+            samples.append({
+                "cycle": cycle,
+                "sck": int(dut.pad_spi_sck_i.value),
+                "cs_n": int(dut.pad_spi_cs_ni.value),
+                "mosi": int(dut.pad_spi_mosi_i.value),
+                "miso": miso,
+            })
+
+    task = cocotb.start_soon(sampler())
+    got = await spi.frame(bytes([gm.OP_RD_ID, 0x00, 0x00, 0x00, 0x00]))
+    stop = True
+    await ClockCycles(dut.pad_clk_i, 4)
+    task.cancel()
+
+    ident = int.from_bytes(got[1:5], "big")
+    assert ident == gm.CHIP_ID, (
+        f"the captured frame returned 0x{ident:08X}, expected 0x{gm.CHIP_ID:08X}; "
+        f"the timing diagram would be wrong"
+    )
+
+    out_dir = pathlib.Path(
+        os.environ.get("GEMM_RESULTS_DIR")
+        or pathlib.Path(__file__).resolve().parent.parent / "results" / "trace"
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "source": "tb/test_spi_protocol.py::test_capture_timing_trace",
+        "note": (
+            "One SPI frame sampled on every core clock rising edge. miso is null "
+            "while chip select is released, because the pad is not driven then."
+        ),
+        "core_clock_period_ns": 10,
+        "cycles_per_spi_half_period": spi.half,
+        "frame_bytes_mosi": [gm.OP_RD_ID, 0, 0, 0, 0],
+        "frame_bytes_miso": list(got),
+        "chip_id": gm.CHIP_ID,
+        "samples": samples,
+    }
+    (out_dir / "spi_frame.json").write_text(json.dumps(payload, indent=2) + "\n")
+    dut._log.info(
+        f"captured {len(samples)} core cycles of one OP_RD_ID frame, "
+        f"MISO returned {bytes(got).hex()}"
+    )

@@ -1,0 +1,26 @@
+
+38. Printing statistics.
+
+=== engine_bitserial ===
+
+   Number of wires:              10725
+   Number of wire bits:          12055
+   Number of public wires:          31
+   Number of public wire bits:    1359
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              11760
+     $_ANDNOT_                    3412
+     $_AND_                        257
+     $_DFFE_PN0P_                  788
+     $_DFF_PN0_                      1
+     $_MUX_                        896
+     $_NAND_                       512
+     $_NOR_                        224
+     $_NOT_                        751
+     $_ORNOT_                      307
+     $_OR_                        1954
+     $_XNOR_                       352
+     $_XOR_                       2306
+

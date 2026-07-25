@@ -1,0 +1,26 @@
+
+38. Printing statistics.
+
+=== engine_signmag ===
+
+   Number of wires:              41858
+   Number of wire bits:          42629
+   Number of public wires:          10
+   Number of public wire bits:     781
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              42361
+     $_ANDNOT_                   14675
+     $_AND_                       1697
+     $_DFFE_PN0P_                  512
+     $_DFF_PN0_                      1
+     $_MUX_                       1152
+     $_NAND_                       751
+     $_NOR_                       3478
+     $_NOT_                       1233
+     $_ORNOT_                      888
+     $_OR_                        7030
+     $_XNOR_                      4006
+     $_XOR_                       6938
+
