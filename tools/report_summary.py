@@ -78,15 +78,25 @@ def activity_table(gate) -> str:
     return "\n".join(lines) + "\n"
 
 
-def real_ppa_table(pdk, pnr, perf) -> str:
-    """The headline table: real area, real frequency, real power, per candidate."""
+def real_ppa_table(pdk, pnr, routed_power) -> str:
+    """The headline table: real area, real frequency, real power, per candidate.
+
+    Area and frequency are post-route. Power is post-route too where
+    tools/verify_routed.py has measured it on the netlist the GDS was streamed from,
+    and falls back to the post-synthesis measurement otherwise. The two are not
+    interchangeable, so the fallback is marked in the cell rather than silently mixed
+    into a column labelled post-route.
+    """
     if not (pdk and pnr):
         return "(needs results from tools/pdk_ppa.py and tools/run_pnr.py)\n"
     cands, routed = pdk["candidates"], pnr["candidates"]
+    measured = (routed_power or {}).get("candidates", {})
     clock = next(iter(cands.values()))["power_clock_ns"]
     lines = [
-        f"Power at {1000.0 / clock:.0f} MHz, annotated from a gate level VCD at an even "
-        f"operand sign mix. Fmax at the {pnr['signoff_corner']} corner.",
+        f"Area and Fmax are post-route, at the {pnr['signoff_corner']} corner. Power is "
+        f"at {1000.0 / clock:.0f} MHz, annotated from a gate level VCD at an even "
+        "operand sign mix; a dagger marks power still measured on the synthesis "
+        "netlist rather than the routed one.",
         "",
         "| Candidate | Cell area | Die area | Post-route Fmax | Power | Energy/tile |",
         "|---|---|---|---|---|---|",
@@ -97,12 +107,19 @@ def real_ppa_table(pdk, pnr, perf) -> str:
         die = routed.get(top)
         if not (cell and die):
             continue
+        post = measured.get(top)
+        if post:
+            watts, energy, mark = post["power"]["total"]["total_w"], \
+                post["energy_per_tile_pj"], ""
+        else:
+            watts, energy, mark = cell["power"]["total"]["total_w"], \
+                cell["energy_per_tile_pj"], " †"
         lines.append(
             f"| `{top}` | {die['design__instance__area__stdcell']:,.0f} um2 | "
             f"{die['design__die__area'] / 1e6:.3f} mm2 | "
             f"{die['fmax_mhz']:.1f} MHz | "
-            f"{cell['power']['total']['total_w'] * 1e3:.2f} mW | "
-            f"{cell['energy_per_tile_pj']:,.0f} pJ |"
+            f"{watts * 1e3:.2f} mW{mark} | "
+            f"{energy:,.0f} pJ{mark} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -123,13 +140,17 @@ def timing_table(pdk, pnr) -> str:
         die = routed.get(top)
         if not cell:
             continue
+        # A candidate that has not been routed has no routed frequency. Printing 0.0
+        # MHz for it would be a fabricated number that reads like a measured one.
         by_corner = die["fmax_mhz_by_corner"] if die else {}
+        slow = f"{die['fmax_mhz']:.1f} MHz" if die else "not routed"
+        typical = by_corner.get("nom_typ_1p20V_25C")
         lines.append(
             f"| `{top}` | {cell['critical_path_ns']:.2f} ns | "
             f"`{cell['limiting_path']['from']}` | "
             f"{cell['datapath_path_ns']:.2f} ns | "
-            f"{(die['fmax_mhz'] if die else 0):.1f} MHz | "
-            f"{by_corner.get('nom_typ_1p20V_25C', 0):.1f} MHz |"
+            f"{slow} | "
+            f"{f'{typical:.1f} MHz' if typical is not None else 'not routed'} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -197,10 +218,11 @@ def main() -> int:
     pdk = load(RESULTS / "pdk" / "summary.json")
     pnr = load(RESULTS / "pnr" / "summary.json")
     sweep = load(RESULTS / "pdk" / "sign_sweep.json")
+    routed_power = load(RESULTS / "pnr" / "routed_power.json")
 
     if args.real or show_all:
         print("## Real PPA per candidate\n")
-        print(real_ppa_table(pdk, pnr, perf))
+        print(real_ppa_table(pdk, pnr, routed_power))
     if args.timing or show_all:
         print("## Where the frequency comes from\n")
         print(timing_table(pdk, pnr))
