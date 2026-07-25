@@ -1,0 +1,2 @@
+top,clock_period_ns,fmax_mhz,design__die__area,design__instance__area__stdcell,design__instance__utilization,design__instance__count__stdcell,route__wirelength,power__total,magic__drc_error__count,klayout__drc_error__count,design__lvs_error__count,setup_slack_nom_slow_1p08V_125C,setup_slack_nom_typ_1p20V_25C,setup_slack_nom_fast_1p32V_m40C
+engine_bitserial,20.0,67.05,356166,185381,0.560621,13567,411119,0.03682028874754906,0,0,0,5.085791487453536,8.991662779960786,11.304901335032122

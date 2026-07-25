@@ -19,6 +19,14 @@ figure is a bug rather than an inevitability.
 | `activity_vs_signs.png` | `tools/plot_activity.py` | `results/activity/gate_summary.json` |
 | `activity_modules.png` | `tools/plot_activity.py` | `results/activity/engines_neg*.json` |
 | `floorplan_estimate.png` | `tools/plot_floorplan.py` | `results/synth/generic/summary.json` |
+| `pnr_area.png` | `tools/plot_pnr.py` | `results/pnr/summary.json` and `results/pdk/summary.json` |
+| `pnr_fmax.png` | `tools/plot_pnr.py` | `results/pnr/summary.json` |
+| `ppa_pareto_real.png` | `tools/plot_pnr.py` | `results/pnr/summary.json` and `results/pdk/summary.json` |
+| `power_proxy_vs_real.png` | `tools/plot_pnr.py` | `results/pdk/summary.json` and `results/activity/gate_summary.json` |
+| `power_vs_signs_real.png` | `tools/plot_pnr.py` | `results/pdk/sign_sweep.json` |
+| `layout_<candidate>.png` | `tools/render_gds.py` | the routed GDS from `make pnr` |
+| `layout_contact_sheet.png` | `tools/render_gds.py` | the same, every candidate at one scale |
+| `layout_zoom_contact_sheet.png` | `tools/render_gds.py` | the same, one 60 um window per candidate |
 
 The SVGs are hand-authored markup emitted from Python rather than a drawing tool
 export: the labels come from the same parameters as the RTL, so a change to `MAT_*` or
@@ -28,10 +36,20 @@ The plotting scripts refuse to draw when the data they need is missing, rather t
 substituting a placeholder. If `make images` fails with a message about a missing
 results file, run the step it names.
 
-## floorplan_estimate.png is not a layout
+## What each layout figure is, and is not
 
-It is a treemap of synthesised cell counts. Block sizes are proportional to area and
-positions are arbitrary. No place and route has been run, because OpenROAD and the IHP
-SG13G2 physical views are not installed in the environment this repository was
-developed in. `tools/render_gds.py` renders a real GDS if you have one, and refuses
-with an explanation if you do not.
+`layout_*.png` are renders of a real routed GDS: LibreLane's Classic flow on the IHP
+SG13G2 PDK, one run per candidate, DRC and LVS clean. KLayout draws them from the GDS
+with the PDK's own layer properties, so the colours are the process's own layer
+assignment rather than a choice made here.
+
+The two contact sheets are the figures worth looking at. `layout_contact_sheet.png`
+draws every candidate at one scale, so the die size difference between a Booth engine
+and a bit-serial one is a visible difference on the page rather than a number in a
+table. `layout_zoom_contact_sheet.png` draws the same 60 micrometre square of silicon in
+each candidate at one magnification.
+
+`floorplan_estimate.png` is **not** a layout. It is a treemap of synthesised cell counts:
+block sizes are proportional to area and positions are arbitrary. It is kept because it
+shows the whole chip, including the parts that have never been placed and routed, and it
+is labelled as an estimate on its face.

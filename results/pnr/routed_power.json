@@ -1,0 +1,65 @@
+{
+  "source": "tools/verify_routed.py",
+  "power_corner": "typ_1p20V_25C",
+  "clock_ns": 20.0,
+  "note": "Post-route functional verification and post-route power. The netlist is LibreLane's final netlist, the one the GDS was streamed from. 'functional: pass' means every output element of every tile matched the NumPy reference model, on the routed netlist, simulated against the PDK's own cell models. Power is annotated from the VCD of that run with the parasitics extracted from the routing, so it is measured on real cells with real wire capacitance and real switching activity. The simulation is zero-delay, because the PDK specify blocks have to be stripped for Icarus, so glitch power is still not counted.",
+  "candidates": {
+    "engine_bitserial": {
+      "top": "engine_bitserial",
+      "netlist": "flow/librelane/engine_bitserial/runs/pnr/final/nl/engine_bitserial.nl.v",
+      "spef": "flow/librelane/engine_bitserial/runs/pnr/final/spef/nom/engine_bitserial.nom.spef",
+      "functional": "pass",
+      "power_corner": "typ_1p20V_25C",
+      "clock_ns": 20.0,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00250016782,
+          "switching_w": 5.81451714e-05,
+          "leakage_w": 4.52746292e-07,
+          "total_w": 0.00255876593
+        },
+        "combinational": {
+          "internal_w": 0.00100634061,
+          "switching_w": 0.00122282316,
+          "leakage_w": 2.30615115e-06,
+          "total_w": 0.00223147008
+        },
+        "clock": {
+          "internal_w": 0.00111490674,
+          "switching_w": 0.000648491201,
+          "leakage_w": 8.1624321e-06,
+          "total_w": 0.0017715604
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00462139165,
+          "switching_w": 0.00192945939,
+          "leakage_w": 1.09211887e-05,
+          "total_w": 0.00656177243
+        }
+      },
+      "energy_per_tile_pj": 1253.572,
+      "activity_annotation": {
+        "annotated_pins": 42929,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    }
+  }
+}

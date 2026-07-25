@@ -13,6 +13,15 @@ make power    # activity/
 make images   # docs/img/, from the above
 ```
 
+With the IHP PDK and LibreLane installed, the real-process measurements as well:
+
+```bash
+make synth-pdk  # synth/sg13g2/, cell area in um2
+make pdk-ppa    # pdk/, path delay and watts with real switching activity
+make pnr        # pnr/, place and route to a signed-off GDS
+make layout     # docs/img/layout_*.png, rendered from that GDS
+```
+
 `make report` prints the tables as markdown, which is how the README numbers were
 checked.
 
@@ -65,6 +74,43 @@ like. The reasoning is in
 [what the proxy does not tell you](../docs/PPA_METHODOLOGY.md#what-the-proxy-does-not-tell-you)
 before quoting them.
 
+## pdk/
+
+Real IHP SG13G2 measurements on the synthesised netlist, from `tools/pdk_ppa.py`.
+
+| File | Contents |
+|---|---|
+| `summary.json` | per candidate: cell area in um2, the worst path in the netlist and what limits it, the operand-to-accumulator path, power in watts with the switching activity annotated from a gate level VCD, and energy per tile |
+| `summary.csv` | the same, flat |
+| `sign_sweep.json` | power in watts against the fraction of negative operands, for `engine_wallace` and `engine_signmag`: the sign-magnitude hypothesis in a physical unit |
+| `sign_sweep.csv` | the same, flat |
+
+The power numbers are annotated at 100 percent coverage, which
+`report_activity_annotation` reports and this file records rather than assuming. They
+are quoted at the 20 ns clock the candidates are placed and routed at, and dynamic power
+scales with frequency.
+
+`critical_path_ns` in this file is **not** the design's maximum frequency. It is the
+worst path in an unbuffered Yosys netlist, which is the control fanout rather than the
+arithmetic, and `limiting_path` names it. The routed frequency is in `pnr/`. The
+reasoning is in
+[docs/PPA_METHODOLOGY.md](../docs/PPA_METHODOLOGY.md#timing-and-a-trap-worth-documenting).
+
+## pnr/
+
+Post-route measurements from LibreLane's own `final/metrics.json`, harvested by
+`tools/run_pnr.py`.
+
+| File | Contents |
+|---|---|
+| `summary.json` | per candidate: die area, standard cell area with and without the fill, instance counts, routed wirelength and vias, setup and hold slack at all three PDK corners, maximum frequency per corner, DRC and LVS counts |
+| `summary.csv` | the same, flat |
+
+Every candidate is routed at the identical 20 ns constraint and 40 percent target
+utilisation, so the area columns compare like with like. The GDS itself is not
+committed: it is tens of megabytes per candidate and reproducible with `make pnr`. The
+renders in `docs/img/` are what is committed.
+
 ## trace/
 
 | File | Contents |
@@ -76,8 +122,8 @@ describe timing the RTL does not have.
 
 ## What is not here
 
-- **No layout, no GDS, no routed netlist.** OpenROAD and the IHP SG13G2 physical views
-  are not installed in the environment this repository was developed in.
-- **No power in watts.** That needs the PDK, a placed and routed netlist and an
-  activity file. `flow/openroad/finish.tcl` is where it would come from.
+- **No GDS.** Each routed candidate is tens of megabytes and `make pnr` reproduces it.
+  What is committed is the metrics it produced and the renders.
+- **No chip-level layout.** `gemm_bench_chip` has a pad ring and SRAM macros, and that
+  flow has never completed. Every routed number here is a candidate.
 - **No silicon measurements.** Nothing has been fabricated.

@@ -184,12 +184,18 @@ def write_stimulus(tiles: int, neg_fraction: float, seed: int) -> tuple[pathlib.
 
 def simulate(top: str, netlist: pathlib.Path, models: list[pathlib.Path],
              a_hex: pathlib.Path, b_hex: pathlib.Path, tiles: int,
-             latency: int, clock_ns: float) -> pathlib.Path:
-    """Simulate the PDK-mapped netlist and dump a VCD. Fails if it computes wrongly."""
+             latency: int, clock_ns: float,
+             module: str | None = None) -> pathlib.Path:
+    """Simulate the PDK-mapped netlist and dump a VCD. Fails if it computes wrongly.
+
+    `top` names the output files and `module` names the module to instantiate; they
+    differ when the same candidate is simulated twice, once after synthesis and once
+    after routing, and both runs need their own VCD.
+    """
     binary = BUILD / f"{top}.vvp"
     vcd = BUILD / f"{top}.vcd"
     cmd = ["iverilog", "-g2012", "-s", "tb_activity_gate",
-           f"-DENGINE_MODULE={top}", "-o", str(binary), str(netlist)]
+           f"-DENGINE_MODULE={module or top}", "-o", str(binary), str(netlist)]
     cmd += [str(m) for m in models] + [str(REPO / "tb" / "tb_activity_gate.sv")]
     if run(cmd, BUILD / f"{top}_iverilog.log") != 0:
         raise RuntimeError(f"iverilog failed for {top}; see {BUILD}/{top}_iverilog.log")

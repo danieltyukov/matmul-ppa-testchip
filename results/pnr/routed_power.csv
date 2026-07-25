@@ -1,0 +1,2 @@
+top,functional,internal_w,switching_w,leakage_w,total_w,energy_per_tile_pj,annotation_coverage
+engine_bitserial,pass,0.004621392,0.001929459,0.000010921,0.006561772,1253.572,1.0
