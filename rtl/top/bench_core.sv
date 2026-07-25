@@ -67,9 +67,10 @@ module bench_core #(
     if (ACC_W < 2*OPERAND_W + 1)
       $fatal(1, "bench_core: ACC_W (%0d) cannot hold a product of two %0d bit operands",
              ACC_W, OPERAND_W);
+    // The host byte address is split into a word address and a byte lane by slicing,
+    // which needs the lane count to be a power of two.
     if (2 ** $clog2(TILE_K) != TILE_K)
-      $fatal(1, "bench_core: TILE_K (%0d) must be a power of two so the host byte address maps to a word and a lane by slicing",
-             TILE_K);
+      $fatal(1, "bench_core: TILE_K (%0d) must be a power of two", TILE_K);
     if (2 ** $clog2(TILE_N) != TILE_N)
       $fatal(1, "bench_core: TILE_N (%0d) must be a power of two", TILE_N);
     if (2 ** $clog2(gemm_pkg::GRID_N) != gemm_pkg::GRID_N)

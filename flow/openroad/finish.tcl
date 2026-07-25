@@ -20,7 +20,8 @@ set_propagated_clock [all_clocks]
 estimate_parasitics -global_routing
 
 report_design_area
-report_checks -path_delay min_max -fields {slew cap input nets fanout} -format full_clock_expanded
+report_checks -path_delay min_max -format full_clock_expanded \
+  -fields {slew cap input nets fanout}
 report_worst_slack -max
 report_worst_slack -min
 report_tns

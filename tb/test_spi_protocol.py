@@ -230,7 +230,9 @@ async def test_partial_and_offset_writes(dut):
     # A read that starts at an offset must return the tail of the matrix.
     offset = 100
     tail = await spi.read_memory(gm.OP_RD_A, offset, gm.A_BYTES - offset)
-    assert tail == gm.matrix_to_bytes_int8(a)[offset:], "an offset read returned the wrong bytes"
+    assert tail == gm.matrix_to_bytes_int8(a)[offset:], (
+        "an offset read returned the wrong bytes"
+    )
 
 
 @cocotb.test()

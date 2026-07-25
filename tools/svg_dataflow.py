@@ -74,19 +74,24 @@ def build() -> str:
 
     # A
     ax, ay = 60, 120
-    p.append(text(ax, ay - 14, f"A   {gm.MAT_M} x {gm.MAT_K} INT8, drawn as its {gm.GRID_M} x {gm.GRID_K} tile grid", 13, A_LINE,
-                  weight="600"))
+    p.append(text(ax, ay - 14,
+                  f"A   {gm.MAT_M} x {gm.MAT_K} INT8, drawn as its "
+                  f"{gm.GRID_M} x {gm.GRID_K} tile grid",
+                  13, A_LINE, weight="600"))
     p.append(grid(ax, ay, cell, gm_, gk, A_FILL, A_LINE,
                   highlight={(2, k) for k in range(gk)}))
     p.append(text(ax + gk * cell / 2, ay + gm_ * cell + 20,
-                  f"each cell is one {gm.TILE_M}x{gm.TILE_K} tile", 11.5, MUTED, anchor="middle"))
+                  f"each cell is one {gm.TILE_M}x{gm.TILE_K} tile",
+                  11.5, MUTED, anchor="middle"))
     p.append(text(ax - 10, ay + 2 * cell + 17, "mt=2", 11.5, HOT, anchor="end",
                   weight="600"))
 
     # B
     bx, by = ax + gk * cell + 90, 120
-    p.append(text(bx, by - 14, f"B   {gm.MAT_K} x {gm.MAT_N} INT8, {gm.GRID_K} x {gm.GRID_N} tiles", 13, B_LINE,
-                  weight="600"))
+    p.append(text(bx, by - 14,
+                  f"B   {gm.MAT_K} x {gm.MAT_N} INT8, "
+                  f"{gm.GRID_K} x {gm.GRID_N} tiles",
+                  13, B_LINE, weight="600"))
     p.append(grid(bx, by, cell, gk, gn, B_FILL, B_LINE,
                   highlight={(k, 3) for k in range(gk)}))
     p.append(text(bx + 3 * cell + cell / 2, by - 30, "nt=3", 11.5, HOT,
@@ -94,7 +99,9 @@ def build() -> str:
 
     # C
     cx, cy = bx + gn * cell + 90, 120
-    p.append(text(cx, cy - 14, f"C = A B   {gm.MAT_M} x {gm.MAT_N} INT{gm.ACC_W}, {gm.GRID_M} x {gm.GRID_N} tiles",
+    p.append(text(cx, cy - 14,
+                  f"C = A B   {gm.MAT_M} x {gm.MAT_N} INT{gm.ACC_W}, "
+                  f"{gm.GRID_M} x {gm.GRID_N} tiles",
                   13, C_LINE, weight="600"))
     p.append(grid(cx, cy, cell, gm_, gn, C_FILL, C_LINE, highlight={(2, 3)}))
     p.append(text(cx + gn * cell + 12, cy + 2 * cell + 17,

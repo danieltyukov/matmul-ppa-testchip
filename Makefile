@@ -32,9 +32,9 @@ CHIP_TESTS := test_config test_spi_protocol test_end_to_end test_tiling \
 ENGINE_TESTS := test_engine_exact test_engine_equiv
 
 .PHONY: all help venv lint lint-template sim sim-engines sim-chip sim-quick synth \
-        synth-pdk power images report flow clean distclean check-tools
+        synth-pdk power images report style flow clean distclean check-tools
 
-all: lint lint-template sim synth power images
+all: lint lint-template style sim synth power images
 	@echo ""
 	@echo "lint, sim, synth, power and images all completed."
 
@@ -53,6 +53,7 @@ help:
 	@echo "  make all         lint, sim, synth, power, images"
 	@echo ""
 	@echo "  make report      print the committed measurements as markdown"
+	@echo "  make style       enforce the line length and whitespace rules"
 	@echo "  make lint-template lint the candidate skeleton a fork starts from"
 	@echo ""
 	@echo "  make check-tools report which tools are present"
@@ -113,6 +114,14 @@ lint-template:
 	  $(REPO_ROOT)/rtl/engines/acc_bank.sv \
 	  $(REPO_ROOT)/rtl/engines/engine_template.sv
 	@echo "lint-template: zero warnings"
+
+# ---------------------------------------------------------------------------
+# Style
+#
+# A style rule nobody checks is a suggestion. This one is checked.
+# ---------------------------------------------------------------------------
+style: venv
+	$(VENV_PY) tools/check_style.py
 
 # ---------------------------------------------------------------------------
 # Simulation
