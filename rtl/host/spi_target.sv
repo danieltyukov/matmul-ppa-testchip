@@ -18,15 +18,17 @@
 //
 //   f_spi <= f_core / 8
 //
-// Eight core cycles per SPI half period leaves ample margin over the four that
-// edge detection strictly needs, and the byte-boundary handshake below gives the
-// command router a whole SPI byte period to produce the next outgoing byte.
+// which puts at least four core cycles in an SPI half period. Two are needed for
+// the synchroniser plus edge detection, and three are needed by the command
+// router to fetch the byte that answers the byte just received, so four is the
+// floor. f_core/16 is the recommended operating point.
 //
-// MISO timing: the outgoing shift register is loaded on the SPI clock rising
-// edge that completes the previous byte, and shifted on falling edges. The
-// controller samples on rising edges, so every MISO bit is stable for close to a
-// full SPI period before it is sampled. The first byte of a frame reads back
-// 0x00, because at that point the chip has not yet seen an opcode.
+// MISO timing: the outgoing shift register is loaded on the first falling edge of
+// each byte and shifted on the following seven falling edges. The controller
+// samples on rising edges, so every MISO bit is stable for half an SPI period
+// before it is sampled, and the byte that goes out during byte n is the answer to
+// byte n-1: standard one byte command latency. The first byte of a frame reads
+// back 0x00, because at that point the chip has not seen an opcode yet.
 
 module spi_target (
   input  logic       clk_i,
@@ -117,13 +119,17 @@ module spi_target (
         rx_shift_q <= {rx_shift_q[5:0], mosi_s};
         bit_cnt_q  <= (bit_cnt_q == 3'd7) ? 3'd0 : (bit_cnt_q + 3'd1);
         if (bit_cnt_q == 3'd7) begin
-          rx_byte_q  <= {rx_shift_q, mosi_s};
-          tx_shift_q <= tx_byte_i;
+          rx_byte_q <= {rx_shift_q, mosi_s};
         end
-      end else if (sck_fall && (bit_cnt_q != 3'd0)) begin
-        // Skipped when bit_cnt_q is zero so the falling edge right after a byte
-        // boundary does not shift away the byte that was just loaded.
-        tx_shift_q <= {tx_shift_q[6:0], 1'b0};
+      end else if (sck_fall) begin
+        if (bit_cnt_q == 3'd0) begin
+          // First falling edge of a new byte: load, do not shift. This is half an
+          // SPI period after the byte boundary, which is what gives the command
+          // router time to produce the byte that answers the byte just received.
+          tx_shift_q <= tx_byte_i;
+        end else begin
+          tx_shift_q <= {tx_shift_q[6:0], 1'b0};
+        end
       end
     end
   end
