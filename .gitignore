@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# cocotb / simulator build output
+sim_build/
+obj_dir/
+results.xml
+*.vcd
+*.fst
+*.vvp
+*.log
+
+# Synthesis and flow output
+build/
+flow/out/
+*.json.gz
+pdk/
+
+# Editors
+.vscode/
+.idea/
+*.swp
