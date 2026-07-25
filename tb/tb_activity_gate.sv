@@ -76,7 +76,18 @@ module tb_activity_gate;
     .mac_tick_o  (mac_tick)
   );
 
-  always #5 clk = ~clk;
+  // The clock period is a plusarg because power is proportional to frequency, and the
+  // VCD this bench writes is annotated onto the netlist by tools/pdk_ppa.py with an SDC
+  // clock that has to match it. Quoting milliwatts at a period the design cannot meet
+  // would be a fiction, so the caller picks the period and passes the same number to
+  // both. The default keeps every existing switching-activity result unchanged, because
+  // a transition count does not depend on the time base at all.
+  real half_ns;
+
+  initial begin : p_clock
+    if (!$value$plusargs("half_ns=%f", half_ns)) half_ns = 5.0;
+    forever #(half_ns) clk = ~clk;
+  end
 
   logic [7:0] a_mem [0:MAX_TILES*A_ELEMS-1];
   logic [7:0] b_mem [0:MAX_TILES*B_ELEMS-1];

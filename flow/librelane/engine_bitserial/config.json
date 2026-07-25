@@ -1,0 +1,20 @@
+{
+  "DESIGN_NAME": "engine_bitserial",
+  "PDK": "ihp-sg13g2",
+  "VERILOG_FILES": [
+    "dir::../../../rtl/pkg/gemm_pkg.sv",
+    "dir::../../../rtl/engines/acc_bank.sv",
+    "dir::../../../rtl/engines/engine_bitserial.sv"
+  ],
+  "CLOCK_PORT": "clk_i",
+  "CLOCK_PERIOD": 20.0,
+  "PNR_SDC_FILE": "dir::../../../constraints/block.sdc",
+  "SIGNOFF_SDC_FILE": "dir::../../../constraints/block.sdc",
+  "FP_SIZING": "relative",
+  "FP_CORE_UTIL": 40,
+  "PL_TARGET_DENSITY_PCT": 45,
+  "RUN_LINTER": false,
+  "KLAYOUT_DRC_THREADS": 6,
+  "KLAYOUT_XOR_THREADS": 6,
+  "DRT_THREADS": 6
+}

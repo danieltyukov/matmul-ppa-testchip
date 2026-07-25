@@ -15,6 +15,9 @@ results.xml
 # Synthesis and flow output
 build/
 flow/out/
+# LibreLane writes one run directory per candidate, several gigabytes each. The
+# configuration that produced it is committed; the run itself is reproducible output.
+flow/librelane/*/runs/
 *.json.gz
 pdk/
 

@@ -14,11 +14,22 @@ For each candidate:
   2. Simulate that netlist against the PDK's own Verilog cell models with the shared
      operand stimulus. This doubles as post-synthesis functional verification on real
      cells, and produces the VCD that power annotation needs.
-  3. Static timing analysis to find Fmax, closed loop: measure slack at a starting
-     period, compute the period that would give zero slack, re-run there and confirm.
-     Reporting `1 / (period - slack)` from a single run assumes the critical path delay
-     is independent of the constraint, which is not exactly true, so the second run is
-     the check.
+  3. Static timing analysis, twice: the worst path in the whole netlist, and the worst
+     path through the arithmetic on its own. Both are needed, because on a raw Yosys
+     netlist they are different things. Yosys does no load-aware buffering, so
+     `acc_clear_i` and `launch_i` reach 512 accumulator flip-flops through one gate and
+     that unbuffered net is the worst path in every single-cycle candidate, at within
+     15 ps of the same delay. Quoting it as the candidate's Fmax would report the same
+     number for four different multipliers, which is exactly what happened before this
+     was split. The operand-to-accumulator path is what distinguishes the
+     microarchitectures, and the routed netlist in results/pnr is what fixes the
+     control net, because place and route inserts the buffer tree.
+
+     The whole-netlist number is measured closed loop: slack at a starting period, then
+     the period that would give zero slack, re-run there and confirmed. Reporting
+     `1 / (period - slack)` from a single run assumes the critical path delay is
+     independent of the constraint, which is not exactly true, so the second run is the
+     check.
   4. Power with the VCD annotated onto the netlist, split into internal, switching and
      leakage. `report_activity_annotation` gives the coverage, which is reported
      alongside the number rather than assumed to be complete.
@@ -65,9 +76,13 @@ ENGINE_TOPS = [f"engine_{n}" for n in
 TIMING_CORNER = "slow_1p08V_125C"
 POWER_CORNER = "typ_1p20V_25C"
 
-# The activity bench runs a 10 ns clock, and power scales with frequency, so the SDC
-# clock for the power run has to match the VCD or the annotation is inconsistent.
-BENCH_CLOCK_NS = 10.0
+# Power scales with frequency, so the SDC clock for the power run has to match the clock
+# the VCD was written at or the annotation is inconsistent. Both come from this one
+# constant: it is passed to the bench as +half_ns and to OpenROAD as the clock period.
+# 20 ns is the chip's declared target in constraints/clocks.sdc and the period every
+# candidate is placed and routed at, so every power number in this repository is quoted
+# at one frequency the design is actually built for.
+BENCH_CLOCK_NS = 20.0
 
 # Starting point for the Fmax search. Generous enough that the first run has positive
 # slack for the fast candidates and a large negative slack for the slow ones; either
@@ -75,6 +90,12 @@ BENCH_CLOCK_NS = 10.0
 FMAX_SEED_NS = 40.0
 
 _SLACK_RE = re.compile(r"worst slack max\s+(-?[\d.]+)")
+# One reported path: its endpoints and its slack. Used to name the net that limits the
+# netlist, so a reader can see for themselves that it is a control fanout and not the
+# multiplier.
+_PATH_RE = re.compile(
+    r"Startpoint: (\S+).*?Endpoint: (\S+).*?(-?[\d.]+)\s+slack \((?:MET|VIOLATED)\)",
+    re.S)
 _AREA_RE = re.compile(r"Design area\s+([\d.]+)\s+um\^2")
 _ANNOT_RE = re.compile(r"^\s*(vcd|unannotated)\s+(\d+)\s*$", re.M)
 _POWER_ROW_RE = re.compile(
@@ -155,7 +176,7 @@ def write_stimulus(tiles: int, neg_fraction: float, seed: int) -> tuple[pathlib.
 
 def simulate(top: str, netlist: pathlib.Path, models: list[pathlib.Path],
              a_hex: pathlib.Path, b_hex: pathlib.Path, tiles: int,
-             latency: int) -> pathlib.Path:
+             latency: int, clock_ns: float) -> pathlib.Path:
     """Simulate the PDK-mapped netlist and dump a VCD. Fails if it computes wrongly."""
     binary = BUILD / f"{top}.vvp"
     vcd = BUILD / f"{top}.vcd"
@@ -167,7 +188,8 @@ def simulate(top: str, netlist: pathlib.Path, models: list[pathlib.Path],
 
     result = subprocess.run(
         ["vvp", str(binary), f"+a_hex={a_hex}", f"+b_hex={b_hex}", f"+vcd={vcd}",
-         f"+tiles={tiles}", "+clear_every=8", f"+latency={latency}", f"+name={top}"],
+         f"+tiles={tiles}", "+clear_every=8", f"+latency={latency}", f"+name={top}",
+         f"+half_ns={clock_ns / 2.0}"],
         cwd=REPO, capture_output=True, text=True,
     )
     (BUILD / f"{top}_sim.log").write_text(result.stdout + result.stderr)
@@ -194,14 +216,28 @@ def sta_script(pdk: pathlib.Path, corner: str, netlist: pathlib.Path, top: str,
         "set_wire_rc -clock -layer Metal5",
         "estimate_parasitics -placement",
         f"create_clock -name clk -period {period} [get_ports clk_i]",
-        # Operands arrive from the sequencer's tile registers, so they are launched by
-        # the same clock rather than being asynchronous.
-        "set_input_delay 0.0 -clock clk [get_ports rst_ni]",
-        "set_input_delay 0.0 -clock clk [get_ports acc_clear_i]",
-        "set_input_delay 0.0 -clock clk [get_ports launch_i]",
-        "set_output_delay 0.0 -clock clk [get_ports ready_o]",
-        "set_output_delay 0.0 -clock clk [get_ports valid_o]",
+        # Every port is constrained. Operands, control and results all cross to the
+        # sequencer's registers in this same clock domain, so they are timed against the
+        # same clock with no external delay: the whole period belongs to the candidate.
+        #
+        # This matters more than it looks. An unconstrained input has no arrival time,
+        # so every path through it is invisible to the analysis: leaving a_tile_i and
+        # b_tile_i out means the multiplier array is never timed at all, and the report
+        # is then about the control logic. `remove_from_collection` does not exist in
+        # this OpenROAD build, so the ports are listed rather than derived.
+        "set_input_delay 0.0 -clock clk [get_ports {rst_ni acc_clear_i launch_i}]",
+        "set_input_delay 0.0 -clock clk [get_ports a_tile_i]",
+        "set_input_delay 0.0 -clock clk [get_ports b_tile_i]",
+        "set_output_delay 0.0 -clock clk [get_ports {ready_o valid_o mac_tick_o}]",
+        "set_output_delay 0.0 -clock clk [get_ports c_tile_o]",
         "report_worst_slack -max -digits 4",
+        # The worst path with its endpoints, so the report names what limits the
+        # netlist instead of only how much.
+        "report_checks -path_delay max -digits 4 -group_path_count 1 -fields {}",
+        # The arithmetic on its own: operand ports to whatever register they reach.
+        "puts {=== datapath ===}",
+        "report_checks -from [get_ports {a_tile_i b_tile_i}] -path_delay max "
+        "-digits 4 -group_path_count 1 -endpoint_path_count 1 -fields {}",
         "report_design_area",
     ]
     if vcd is not None:
@@ -223,6 +259,17 @@ def openroad(script: str, log: pathlib.Path) -> str:
 def parse_slack(text: str) -> float | None:
     match = _SLACK_RE.search(text)
     return float(match.group(1)) if match else None
+
+
+def parse_paths(text: str) -> list[dict]:
+    """Every reported path, as start, end and slack."""
+    return [{"from": f, "to": t, "slack_ns": float(s)}
+            for f, t, s in _PATH_RE.findall(text)]
+
+
+def worst_path(text: str) -> dict | None:
+    paths = parse_paths(text)
+    return min(paths, key=lambda p: p["slack_ns"]) if paths else None
 
 
 def parse_power(text: str) -> dict:
@@ -251,7 +298,7 @@ def measure(top: str, pdk: pathlib.Path, tiles: int, neg_fraction: float,
     a_hex, b_hex = write_stimulus(tiles, neg_fraction, seed)
     engine_index = ENGINE_TOPS.index(top)
     latency = gm.ENGINE_LATENCY[engine_index]
-    vcd = simulate(top, netlist, models, a_hex, b_hex, tiles, latency)
+    vcd = simulate(top, netlist, models, a_hex, b_hex, tiles, latency, BENCH_CLOCK_NS)
 
     # Fmax, closed loop.
     print(f"  {top}: timing at {TIMING_CORNER}", flush=True)
@@ -261,6 +308,13 @@ def measure(top: str, pdk: pathlib.Path, tiles: int, neg_fraction: float,
     if slack is None:
         raise RuntimeError(f"no slack reported for {top}; see {BUILD}/{top}_sta_seed.log")
     critical_ns = FMAX_SEED_NS - slack
+
+    # Split the report at the marker: before it is every path group, after it is the
+    # operand-to-register path on its own.
+    head, _, tail = text.partition("=== datapath ===")
+    limiter = worst_path(head)
+    datapath = worst_path(tail)
+
     text2 = openroad(
         sta_script(pdk, TIMING_CORNER, netlist, top, round(critical_ns, 3), None),
         BUILD / f"{top}_sta_check.log")
@@ -277,6 +331,8 @@ def measure(top: str, pdk: pathlib.Path, tiles: int, neg_fraction: float,
     unannotated = power["annotation"]["unannotated_pins"]
     coverage = annotated / (annotated + unannotated) if (annotated + unannotated) else 0.0
 
+    datapath_ns = (FMAX_SEED_NS - datapath["slack_ns"]) if datapath else None
+
     return {
         "top": top,
         "timing_corner": TIMING_CORNER,
@@ -285,6 +341,10 @@ def measure(top: str, pdk: pathlib.Path, tiles: int, neg_fraction: float,
         "critical_path_ns": round(critical_ns, 4),
         "fmax_mhz": round(1000.0 / critical_ns, 2),
         "fmax_check_slack_ns": slack2,
+        "limiting_path": limiter,
+        "datapath_path_ns": round(datapath_ns, 4) if datapath_ns else None,
+        "datapath_fmax_mhz": round(1000.0 / datapath_ns, 2) if datapath_ns else None,
+        "datapath_path": datapath,
         "seed_period_ns": FMAX_SEED_NS,
         "seed_slack_ns": slack,
         "power_clock_ns": BENCH_CLOCK_NS,
@@ -326,8 +386,12 @@ def main(argv: list[str] | None = None) -> int:
         entry = measure(top, args.pdk, args.tiles, args.neg_fraction, args.seed)
         entries[top] = entry
         print(f"  -> {entry['cell_area_um2']:,.0f} um2, "
-              f"{entry['fmax_mhz']:.1f} MHz, "
-              f"{entry['power']['total']['total_w'] * 1e3:.2f} mW, "
+              f"netlist {entry['fmax_mhz']:.1f} MHz "
+              f"(limited by {entry['limiting_path']['from']} -> "
+              f"{entry['limiting_path']['to']}), "
+              f"datapath {entry['datapath_fmax_mhz']:.1f} MHz, "
+              f"{entry['power']['total']['total_w'] * 1e3:.2f} mW at "
+              f"{1000.0 / BENCH_CLOCK_NS:.0f} MHz, "
               f"annotation {entry['activity_annotation']['coverage']:.1%}", flush=True)
 
     payload = {
@@ -339,10 +403,18 @@ def main(argv: list[str] | None = None) -> int:
             "Real IHP SG13G2 numbers, post-synthesis. Area is standard cell area, not "
             "die area: no routing, filler, tap, power grid or pad frame. Timing uses "
             "placement-estimated parasitics from set_wire_rc plus estimate_parasitics, "
-            "not parasitics extracted from routing, so post-route Fmax is lower. Power "
-            "is annotated from a VCD of the same netlist under an identical operand "
-            "stream across candidates, and the annotation coverage is reported rather "
-            "than assumed. The gate level simulation is zero-delay because the PDK "
+            "not parasitics extracted from routing. critical_path_ns and fmax_mhz are "
+            "the worst path in the netlist, and limiting_path names it: on a Yosys "
+            "netlist that path is the unbuffered acc_clear_i or launch_i fanout to 512 "
+            "accumulator flip-flops, not the arithmetic, which is why it is nearly "
+            "identical across the single-cycle candidates. datapath_path_ns is the "
+            "operand-to-accumulator path, which is the number that distinguishes the "
+            "microarchitectures. Place and route buffers the control net, so the "
+            "routed frequencies in results/pnr/summary.json are the ones to quote. "
+            "Power is annotated from a VCD of the same netlist under an identical "
+            "operand stream across candidates, at power_clock_ns, and the annotation "
+            "coverage is reported rather than assumed. Dynamic power scales with "
+            "frequency. The gate level simulation is zero-delay because the PDK "
             "specify blocks must be stripped for Icarus, so glitch power is not "
             "captured and deep combinational designs are flattered."
         ),
@@ -353,12 +425,14 @@ def main(argv: list[str] | None = None) -> int:
     with (args.out_dir / "summary.csv").open("w", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["top", "cell_area_um2", "critical_path_ns", "fmax_mhz",
+                         "datapath_path_ns", "datapath_fmax_mhz",
                          "internal_w", "switching_w", "leakage_w", "total_w",
                          "annotation_coverage"])
         for top, e in entries.items():
             total = e["power"]["total"]
             writer.writerow([top, f"{e['cell_area_um2']:.3f}",
                              e["critical_path_ns"], e["fmax_mhz"],
+                             e["datapath_path_ns"], e["datapath_fmax_mhz"],
                              f"{total['internal_w']:.9f}",
                              f"{total['switching_w']:.9f}",
                              f"{total['leakage_w']:.9f}",

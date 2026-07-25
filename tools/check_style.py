@@ -25,8 +25,9 @@ TARGETS = [
     ("constraints", ("*.sdc",)),
 ]
 # Generated output, not source. flow/out holds Tcl written by flow/Makefile and DEF
-# written by OpenROAD, neither of which is anyone's to format.
-SKIP_PARTS = {"out", "build", ".venv"}
+# written by OpenROAD, and flow/librelane/*/runs holds the Tcl LibreLane writes for
+# every one of its 79 steps. None of it is anyone's to format.
+SKIP_PARTS = {"out", "build", "runs", ".venv"}
 
 
 def main() -> int:
