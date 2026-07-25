@@ -1,0 +1,37 @@
+
+40. Printing statistics.
+
+=== engine_bitserial ===
+
+   Number of wires:              13410
+   Number of wire bits:          13410
+   Number of public wires:        1058
+   Number of public wire bits:    1058
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              13143
+     sg13g2_a21o_1                 176
+     sg13g2_a21oi_1                969
+     sg13g2_a221oi_1                80
+     sg13g2_and2_1                 241
+     sg13g2_and3_1                  32
+     sg13g2_dfrbpq_1               789
+     sg13g2_inv_1                 1855
+     sg13g2_mux2_2                  32
+     sg13g2_nand2_1               1920
+     sg13g2_nand2b_1               401
+     sg13g2_nand3_1                672
+     sg13g2_nand3b_1                 1
+     sg13g2_nand4_1                256
+     sg13g2_nor2_1                1581
+     sg13g2_nor2b_1                174
+     sg13g2_nor3_1                 128
+     sg13g2_o21ai_1               1947
+     sg13g2_or2_2                   16
+     sg13g2_or3_2                   16
+     sg13g2_xnor2_1               1664
+     sg13g2_xor2_1                 193
+
+   Chip area for module '\engine_bitserial': 149874.883200
+

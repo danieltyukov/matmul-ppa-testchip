@@ -1,0 +1,39 @@
+
+40. Printing statistics.
+
+=== engine_signmag ===
+
+   Number of wires:              38658
+   Number of wire bits:          38658
+   Number of public wires:         781
+   Number of public wire bits:     781
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              38390
+     sg13g2_a21o_1                 445
+     sg13g2_a21oi_1               2114
+     sg13g2_a221oi_1               147
+     sg13g2_a22oi_1                128
+     sg13g2_and2_1                 489
+     sg13g2_and3_1                  32
+     sg13g2_dfrbpq_1               513
+     sg13g2_inv_1                 4387
+     sg13g2_mux2_2                  71
+     sg13g2_nand2_1               6880
+     sg13g2_nand2b_1               797
+     sg13g2_nand3_1               1004
+     sg13g2_nand3b_1                16
+     sg13g2_nand4_1                480
+     sg13g2_nor2_1                5332
+     sg13g2_nor2b_1                842
+     sg13g2_nor3_1                 324
+     sg13g2_nor4_1                  80
+     sg13g2_o21ai_1               4570
+     sg13g2_or2_2                  217
+     sg13g2_or3_2                   32
+     sg13g2_xnor2_1               7920
+     sg13g2_xor2_1                1570
+
+   Chip area for module '\engine_signmag': 387503.827200
+

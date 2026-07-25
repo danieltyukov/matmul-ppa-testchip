@@ -1,0 +1,38 @@
+
+40. Printing statistics.
+
+=== engine_wallace ===
+
+   Number of wires:              40063
+   Number of wire bits:          40063
+   Number of public wires:         781
+   Number of public wire bits:     781
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:              39795
+     sg13g2_a21o_1                 416
+     sg13g2_a21oi_1               1616
+     sg13g2_a221oi_1               160
+     sg13g2_a22oi_1                 64
+     sg13g2_and2_1                 592
+     sg13g2_and3_1                  16
+     sg13g2_dfrbpq_1               513
+     sg13g2_inv_1                 4561
+     sg13g2_nand2_1               7472
+     sg13g2_nand2b_1               449
+     sg13g2_nand3_1               1408
+     sg13g2_nand3b_1                80
+     sg13g2_nand4_1                272
+     sg13g2_nor2_1                4000
+     sg13g2_nor2b_1                576
+     sg13g2_nor3_1                 672
+     sg13g2_nor4_1                  64
+     sg13g2_o21ai_1               5904
+     sg13g2_or2_2                  112
+     sg13g2_or3_2                   48
+     sg13g2_xnor2_1               8960
+     sg13g2_xor2_1                1840
+
+   Chip area for module '\engine_wallace': 406835.049600
+

@@ -155,13 +155,37 @@ def parse_ltp(text: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+def is_pdk_flop(cell: str) -> bool:
+    """True for an IHP SG13G2 sequential cell.
+
+    The library names its flip-flops sg13g2_dfrbp_*, sg13g2_dfrbpq_*, sg13g2_dlhq_*
+    and similar. Matching the prefix rather than an exhaustive list keeps this working
+    if IHP adds a variant, at the cost of also catching the level sensitive latches,
+    which is the right answer here: the only latch in this design is the clock gate
+    and it is sequential too.
+    """
+    return cell.startswith(("sg13g2_df", "sg13g2_sdf", "sg13g2_dl"))
+
+
 def gate_equivalents(cells: dict[str, int]) -> tuple[float, int, int]:
-    """Total gate equivalents, combinational cell count and flip-flop count."""
+    """Total gate equivalents, combinational cell count and flip-flop count.
+
+    Gate equivalents are only meaningful for the generic gate set, where every cell
+    has a known static CMOS transistor count. For a liberty mapped netlist the real
+    cell area from the library is reported instead and the gate equivalent total is
+    left at zero, because inventing transistor counts for 84 PDK cells to produce a
+    worse version of a number the library already gives exactly would be pointless.
+    """
     total_transistors = 0
     comb = 0
     flops = 0
     for cell, count in cells.items():
-        if cell.startswith("$_DLATCH_"):
+        if cell.startswith("sg13g2_"):
+            if is_pdk_flop(cell):
+                flops += count
+            else:
+                comb += count
+        elif cell.startswith("$_DLATCH_"):
             # Counted towards area but not towards either the combinational or the
             # sequential total, because a clock gate latch is neither.
             total_transistors += TRANSISTORS[cell] * count
@@ -248,6 +272,13 @@ def collect(top: str, mode: str, out_dir: pathlib.Path) -> dict:
     ltp = trim_ltp(out_dir / f"{top}_{mode}_ltp.txt")
     parsed = parse_stat(stat)
     ge, comb, flops = gate_equivalents(parsed["cells"])
+    depth = parse_ltp(ltp)
+    # ltp -noff walks combinational paths by skipping flip-flops it recognises. On a
+    # liberty mapped netlist it does not recognise the PDK sequential cells, so it
+    # reports a meaningless zero. Report nothing rather than a wrong number: the
+    # generic mode is where logic depth is measured.
+    if mode != "generic" and (depth is None or depth == 0):
+        depth = None
     return {
         "top": top,
         "mode": mode,
@@ -255,8 +286,8 @@ def collect(top: str, mode: str, out_dir: pathlib.Path) -> dict:
         "combinational_cells": comb,
         "flip_flops": flops,
         "wire_bits": parsed["wire_bits"],
-        "gate_equivalents": round(ge, 1),
-        "logic_depth": parse_ltp(ltp),
+        "gate_equivalents": round(ge, 1) if mode == "generic" else None,
+        "logic_depth": depth,
         "chip_area_um2": parsed["chip_area_um2"],
         "memories": parsed["memories"],
         "memory_bits": parsed["memory_bits"],
@@ -310,12 +341,14 @@ def main(argv: list[str] | None = None) -> int:
             results[top] = entry
             rows.append(entry)
             area = (f"{entry['chip_area_um2']:.1f} um2"
-                    if entry["chip_area_um2"] else f"{entry['gate_equivalents']} GE")
+                    if entry["chip_area_um2"]
+                    else f"{entry['gate_equivalents']} GE")
             mem = (f"  {entry['memory_bits']:>6} mem bits"
                    if entry["memory_bits"] else "")
+            depth = ("-" if entry["logic_depth"] is None
+                     else str(entry["logic_depth"]))
             print(f"  {top:<20} {entry['total_cells']:>7} cells  "
-                  f"{entry['flip_flops']:>5} FF  depth {entry['logic_depth']:>4}  "
-                  f"{area}{mem}")
+                  f"{entry['flip_flops']:>5} FF  depth {depth:>4}  {area}{mem}")
 
         payload = {
             "source": "tools/synth_collect.py",
@@ -356,7 +389,10 @@ def main(argv: list[str] | None = None) -> int:
         for row in rows:
             writer.writerow([row["mode"], row["top"], row["total_cells"],
                              row["combinational_cells"], row["flip_flops"],
-                             row["gate_equivalents"], row["logic_depth"],
+                             "" if row["gate_equivalents"] is None
+                             else row["gate_equivalents"],
+                             "" if row["logic_depth"] is None
+                             else row["logic_depth"],
                              row["memory_bits"],
                              "" if row["chip_area_um2"] is None
                              else f"{row['chip_area_um2']:.3f}"])

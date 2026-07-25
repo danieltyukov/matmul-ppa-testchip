@@ -84,6 +84,38 @@ def annotate(ax, xs, ys, fmt="{:,.0f}", dy=0.02):
     ax.set_ylim(0, span * 1.16)
 
 
+def plot_pdk_area(pdk: dict):
+    """Real cell area from the IHP SG13G2 liberty, when the PDK run has been done."""
+    tops = pdk["tops"]
+    names = [n for n in ORDER if f"engine_{n}" in tops]
+    area = [tops[f"engine_{n}"]["chip_area_um2"] for n in names]
+    if not all(area):
+        return
+
+    fig, ax = plt.subplots(figsize=(8.0, 5.0))
+    bars = ax.bar(range(len(names)), area, color=[COLOURS[n] for n in names])
+    ax.set_xticks(range(len(names)))
+    ax.set_xticklabels([LABELS[n] for n in names], fontsize=8.5)
+    ax.set_ylabel("standard cell area (square micrometres)")
+    ax.set_title("IHP SG13G2 cell area per candidate")
+    best = min(area)
+    for bar, value in zip(bars, area):
+        ax.annotate(f"{value / 1000:,.0f}k\n{value / best:.2f}x",
+                    (bar.get_x() + bar.get_width() / 2, value),
+                    textcoords="offset points", xytext=(0, 4), ha="center",
+                    fontsize=9)
+    ax.set_ylim(0, max(area) * 1.2)
+    ax.text(0.0, -0.20,
+            "Mapped to sg13g2_stdcell_typ_1p20V_25C. Standard cells only: no routing, "
+            "filler, tap cells, power grid or pad\nframe, none of which exist until "
+            "place and route. A real die is substantially larger than these numbers.",
+            transform=ax.transAxes, fontsize=9, color="#5a6672", va="top")
+    out = IMG / "ppa_area_sg13g2.png"
+    fig.savefig(out)
+    plt.close(fig)
+    print(f"wrote {out}")
+
+
 def plot_area(synth: dict):
     tops = synth["tops"]
     names = [n for n in ORDER if f"engine_{n}" in tops]
@@ -228,6 +260,14 @@ def main() -> int:
 
     plot_area(synth)
     plot_depth(synth)
+
+    pdk = RESULTS / "synth" / "sg13g2" / "summary.json"
+    if pdk.exists():
+        plot_pdk_area(json.loads(pdk.read_text()))
+    else:
+        print("no sg13g2 results; skipping the PDK area chart "
+              "(run tools/fetch_pdk.sh then make synth-pdk)")
+
     plot_cycles(perf)
     plot_pareto(synth, activity, perf)
     return 0

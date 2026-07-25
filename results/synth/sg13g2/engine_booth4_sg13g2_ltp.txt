@@ -1,0 +1,5 @@
+41. Executing LTP pass (find longest path).
+
+Longest topological path in engine_booth4 (length=0):
+
+(path listing of 5 lines omitted; the full report is in build/synth/)

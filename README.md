@@ -67,6 +67,31 @@ even operand sign mix.
 | `engine_signmag` | 42,361 | 82,184 | 59 | 3,904 | 8.39 | 12,118 |
 | `engine_bitserial` | 11,760 | 27,768 | 59 | 7,488 | 4.38 | 25,561 |
 
+### Real PDK cell area
+
+Mapped to the IHP SG13G2 standard cell library (`sg13g2_stdcell_typ_1p20V_25C`,
+revision 0.1.4), so this is area in square micrometres rather than a gate count:
+
+| Candidate | Cells | Cell area | Relative | Area per MAC |
+|---|---|---|---|---|
+| `engine_infer` | 35,917 | 392,529 um2 | 1.20x | 6,133 um2 |
+| `engine_wallace` | 39,795 | 406,835 um2 | 1.24x | 6,357 um2 |
+| `engine_booth4` | 30,389 | **328,163 um2** | **1.00x** | **5,127 um2** |
+| `engine_signmag` | 38,390 | 387,504 um2 | 1.18x | 6,055 um2 |
+| `engine_bitserial` | 13,143 | 149,875 um2 | 0.46x | 2,342 um2 |
+
+The generic and PDK rankings agree, which is the useful part: Booth is smallest,
+Wallace is largest, bit-serial is less than half of anything else, and the ordering
+does not depend on the cost model. At 64 MACs per launch, `engine_booth4` costs about
+5,100 square micrometres per MAC in 130 nm.
+
+**This is standard cell area, not die area.** No place and route has been run, so
+routing, filler, tap cells, the power grid and the pad frame are all excluded. A real
+die is substantially larger. The liberty file is not vendored in this repository;
+`tools/fetch_pdk.sh` downloads it and `make synth-pdk` reproduces the table.
+
+![SG13G2 cell area](docs/img/ppa_area_sg13g2.png)
+
 ![PPA area](docs/img/ppa_area.png)
 
 ![Logic depth](docs/img/ppa_depth.png)
@@ -301,7 +326,7 @@ Verilator is available.
 | `make synth` | no | run, reports committed |
 | `make power` | no | run, results committed |
 | `make images` | no | run, figures committed |
-| `make synth-pdk` | yes, `SG13G2_LIB` | not run: the liberty file is not vendored here |
+| `make synth-pdk` | yes, `SG13G2_LIB` | run, results committed under `results/synth/sg13g2/` |
 | `make flow` | yes, plus OpenROAD | **not run: OpenROAD is not installed and the physical views are unavailable** |
 
 ```bash
@@ -357,6 +382,9 @@ worse than no benchmark at all.
 - **Yosys generic cell counts are not PDK area.** They are unit-cost gates. Gate
   equivalents weight them by static CMOS transistor counts, which is technology
   independent and still not area.
+- **The SG13G2 numbers are real cell area and still not die area.** They exclude
+  routing, filler, tap cells, the power grid and the pad frame, all of which place and
+  route adds.
 - **Logic depth is a gate count, not a delay.** No cell timing is involved.
 - **The power number is a transition count, not watts.** Its known biases are listed in
   the methodology document, with glitch power called out as the largest.
