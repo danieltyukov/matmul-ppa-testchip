@@ -184,12 +184,20 @@ sweeps a workload parameter and post-processes dumps, but it carries assertions:
 
 ## 9. Lint
 
-`make lint` runs Verilator `--lint-only -Wall` on the chip and on the engine harness
-and requires **zero warnings**. Not zero errors, zero warnings. Everything Verilator
-flagged during development was fixed rather than waived, and several of those fixes
-found real problems: an unused upper address range that turned into range checking,
-a truncated constant, and an unnecessary majority gate on the top bit of every
+`make lint` runs Verilator `--lint-only -Wall` and requires **zero warnings**. Not
+zero errors, zero warnings.
+
+On `gemm_bench_chip` there are no waivers of any kind. Everything Verilator flagged
+during development was fixed rather than suppressed, and several of those fixes found
+real problems: an unused upper address range that became address range checking, a
+truncated constant, and an unnecessary majority gate on the top bit of every
 carry-save adder row.
+
+On `tb_engine_harness`, `UNUSEDPARAM` is waived. That top is a verification harness
+that instantiates the five candidates and nothing else, so every host-interface
+constant in `gemm_pkg` really is unused in that elaboration. It is the only waiver in
+the repository, it applies to one warning class on one verification-only top, and the
+reason is recorded next to it in the Makefile.
 
 ## 10. Synthesis
 

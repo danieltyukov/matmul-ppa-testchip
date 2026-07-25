@@ -8,10 +8,10 @@ Reset: the chip must come up in a defined state from the pin, and a soft reset
 must return the datapath to that state without disturbing the SPI front end.
 
 Clock gating: only the selected candidate's clock may run. This is what makes the
-switching-activity measurement mean anything, so it is asserted directly by
-sampling every candidate's gated clock on every core cycle and counting edges. The
-same claim is measured a second way, from a VCD, by tools/vcd_activity.py; two
-independent measurements of the same property is deliberate.
+switching-activity measurement mean anything, so it is asserted directly by sampling
+every candidate's gated clock on every core cycle. The same claim is measured a second
+way, from a VCD, by tools/vcd_activity.py; two independent measurements of the
+property the whole power comparison rests on is deliberate.
 
 These tests reach into the hierarchy, unlike the protocol and flow tests, because
 a gated clock is not observable from the pins. That is the point of the test.
@@ -33,21 +33,25 @@ def _engine_array(dut):
     return dut.u_bench_core.u_engine_array
 
 
-async def _count_gated_clock_edges(dut, cycles: int) -> list[int]:
-    """Count rising edges on each candidate's gated clock over `cycles` core cycles."""
+async def _sample_gated_clocks(dut, cycles: int) -> list[int]:
+    """Count cycles on which each candidate's gated clock was observed running.
+
+    Sampling happens just after each rising edge of the free-running core clock, so
+    an ungated candidate's clock reads high on every sample and a gated one reads low
+    on every sample. The returned counts are therefore "cycles with the clock
+    running" rather than edge counts, which is the honest description of what a
+    cycle-based sample can see: a stopped clock produces zero, a running clock
+    produces the sample count.
+    """
     array = _engine_array(dut)
-    previous = [0] * gm.ENGINE_COUNT
-    edges = [0] * gm.ENGINE_COUNT
+    running = [0] * gm.ENGINE_COUNT
     for _ in range(cycles):
         await RisingEdge(dut.pad_clk_i)
         await Timer(SETTLE_NS, unit="ns")
         raw = int(array.clk_gated.value)
         for engine in range(gm.ENGINE_COUNT):
-            level = (raw >> engine) & 1
-            if level and not previous[engine]:
-                edges[engine] += 1
-            previous[engine] = level
-    return edges
+            running[engine] += (raw >> engine) & 1
+    return running
 
 
 @cocotb.test()
@@ -124,24 +128,25 @@ async def test_only_selected_candidate_is_clocked(dut):
         await spi.select_engine(engine)
         await spi.trigger(gm.TRIG_RUN)
         # Sample well inside the run so the count covers real activity.
-        edges = await _count_gated_clock_edges(dut, 400)
+        samples = 400
+        running = await _sample_gated_clocks(dut, samples)
         await spi.wait_idle()
 
-        assert edges[engine] > 0, (
+        assert running[engine] > 0, (
             f"candidate {engine} ({gm.ENGINE_NAMES[engine]}) is selected but its "
-            f"clock never rose during 400 core cycles of a run"
+            f"clock was never observed running during {samples} core cycles of a run"
         )
         for other in range(gm.ENGINE_COUNT):
             if other == engine:
                 continue
-            assert edges[other] == 0, (
+            assert running[other] == 0, (
                 f"with candidate {engine} ({gm.ENGINE_NAMES[engine]}) selected, "
-                f"candidate {other} ({gm.ENGINE_NAMES[other]}) saw "
-                f"{edges[other]} clock edges; gating is not working"
+                f"candidate {other} ({gm.ENGINE_NAMES[other]}) had a running clock on "
+                f"{running[other]} of {samples} cycles; gating is not working"
             )
         dut._log.info(
-            f"candidate {engine} ({gm.ENGINE_NAMES[engine]}) selected: "
-            f"gated clock edges per candidate over 400 cycles = {edges}"
+            f"candidate {engine} ({gm.ENGINE_NAMES[engine]}) selected: cycles with a "
+            f"running clock, per candidate, out of {samples} = {running}"
         )
 
 
@@ -215,16 +220,18 @@ async def test_test_mode_ungates_everything(dut):
     dut.pad_test_mode_i.value = 1
     await Timer(100, unit="ns")
     await spi.trigger(gm.TRIG_RUN)
-    edges = await _count_gated_clock_edges(dut, 200)
+    running = await _sample_gated_clocks(dut, 200)
     await spi.wait_idle()
     dut.pad_test_mode_i.value = 0
 
     for engine in range(gm.ENGINE_COUNT):
-        assert edges[engine] > 0, (
-            f"in test mode candidate {engine} ({gm.ENGINE_NAMES[engine]}) saw no "
-            f"clock edges; the test enable does not reach its clock gate"
+        assert running[engine] > 0, (
+            f"in test mode candidate {engine} ({gm.ENGINE_NAMES[engine]}) never had a "
+            f"running clock; the test enable does not reach its clock gate"
         )
-    dut._log.info(f"test mode clocked every candidate: {edges}")
+    dut._log.info(
+        f"test mode ran every candidate's clock: cycles running out of 200 = {running}"
+    )
 
 
 @cocotb.test()

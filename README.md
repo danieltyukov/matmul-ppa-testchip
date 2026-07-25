@@ -204,16 +204,15 @@ Everything below genuinely ran, on Icarus Verilog 12.0 through cocotb 2.0.1.
 | `test_spi_protocol` | 16/16 pass | every opcode, 11 unknown opcodes, 7 truncated frames, a mid-byte frame, offset writes, address range violations, 48 back-to-back frames, commands during a run, soft reset, four SPI clock ratios |
 | `test_end_to_end` | 6/6 pass | full 4 KiB result readback checked element by element, on-chip comparator agreement, 6 deliberately corrupted reference elements all localised, all five candidates through the whole chip |
 | `test_perf_counters` | 5/5 pass | measured cycles equal the analytic model exactly for every candidate, MAC count exactly 32,768, cycle count data independent |
-| `test_tiling` | 5 tests | coordinate-dependent operands, 6 single-tile positions, K-tile bit-mask accumulation, boundary tiles, repeated-run idempotence |
-| `test_reset_gating` | 6 tests | reset state, reset mid-run, per-candidate clock gating, operand isolation, test mode, candidate switching |
-| Verilator lint | 0 warnings | `-Wall` on the chip and on the engine harness |
+| `test_tiling` | 5/5 pass | coordinate-dependent operands, 6 single-tile positions, all 8 K tiles proved to contribute exactly once on every candidate, boundary tiles, repeated-run idempotence |
+| `test_reset_gating` | 6/6 pass | reset state, reset mid-run, per-candidate clock gating, operand isolation, test mode, candidate switching |
+| Verilator lint | 0 warnings | `-Wall` on the chip with no waivers of any kind, and on the engine harness with `UNUSEDPARAM` waived because that verification-only top uses none of the host-interface constants |
 | Yosys synthesis | pass | 8 tops, no inferred latches, `check -assert` clean, no blackboxes |
 | Gate level equivalence | pass | all five synthesised netlists checked against a reference before their activity is counted |
 
-`test_tiling` and `test_reset_gating` are the two slowest suites and were still
-running when this README was written, so no pass count is quoted for them. Both passed
-on earlier runs during development, and the badges above report their current status.
-No number elsewhere in this README depends on them.
+Total: 49 cocotb tests, all passing. The two slowest suites (`test_tiling` at 20
+minutes and `test_reset_gating` at 12 minutes on Icarus) are what make `make sim` a
+coffee break rather than a keystroke; `make sim-quick` is the reduced sweep CI runs.
 
 ```bash
 make lint      # Verilator -Wall, must be zero warnings

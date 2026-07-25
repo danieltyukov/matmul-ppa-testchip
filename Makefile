@@ -87,11 +87,17 @@ check-tools:
 # ---------------------------------------------------------------------------
 # Lint
 # ---------------------------------------------------------------------------
+# The chip is linted with -Wall and no waivers at all: zero warnings is the pass
+# condition. The engine harness is a verification-only top that instantiates the
+# candidates and nothing else, so every host-interface constant in gemm_pkg is
+# genuinely unused in that elaboration. UNUSEDPARAM is waived for that top only, and
+# for that reason; no other warning is waived anywhere.
 lint:
 	verilator --lint-only -Wall -sv --top-module gemm_bench_chip $(RTL_PATHS)
-	verilator --lint-only -Wall -sv --top-module tb_engine_harness \
-	  $(RTL_PATHS) $(TB_DIR)/tb_engine_harness.sv
-	@echo "lint: zero warnings"
+	verilator --lint-only -Wall -Wno-UNUSEDPARAM -sv \
+	  --top-module tb_engine_harness $(RTL_PATHS) $(TB_DIR)/tb_engine_harness.sv
+	@echo "lint: zero warnings on gemm_bench_chip (no waivers)"
+	@echo "lint: zero warnings on tb_engine_harness (UNUSEDPARAM waived, see Makefile)"
 
 # ---------------------------------------------------------------------------
 # Simulation
