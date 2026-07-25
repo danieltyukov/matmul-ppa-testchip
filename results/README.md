@@ -19,6 +19,7 @@ With the IHP PDK and LibreLane installed, the real-process measurements as well:
 make synth-pdk  # synth/sg13g2/, cell area in um2
 make pdk-ppa    # pdk/, path delay and watts with real switching activity
 make pnr        # pnr/, place and route to a signed-off GDS
+make verify-routed # simulate the routed netlist, measure its power
 make layout     # docs/img/layout_*.png, rendered from that GDS
 ```
 
@@ -105,11 +106,21 @@ Post-route measurements from LibreLane's own `final/metrics.json`, harvested by
 |---|---|
 | `summary.json` | per candidate: die area, standard cell area with and without the fill, instance counts, routed wirelength and vias, setup and hold slack at all three PDK corners, maximum frequency per corner, DRC and LVS counts |
 | `summary.csv` | the same, flat |
+| `routed_power.json` | per candidate: post-route power split into sequential, combinational and clock, energy per tile, annotation coverage, and whether the routed netlist still computes the right answer. Written by `tools/verify_routed.py` |
+| `routed_power.csv` | the same, flat |
 
 Every candidate is routed at the identical 20 ns constraint and 40 percent target
 utilisation, so the area columns compare like with like. The GDS itself is not
 committed: it is tens of megabytes per candidate and reproducible with `make pnr`. The
 renders in `docs/img/` are what is committed.
+
+**Two power numbers live here and they are not the same number.** `power__total` in
+`summary.json` is what OpenROAD reports during the flow at its default switching
+activity, with nothing annotated from a workload, and it runs about five times the
+measured figure. The measured one is in `routed_power.json`: LibreLane's final netlist
+simulated against the reference model, with power annotated from that run's VCD and the
+parasitics extracted from the routing. Quote the second, and check its `functional` and
+`coverage` fields before you do.
 
 ## trace/
 
