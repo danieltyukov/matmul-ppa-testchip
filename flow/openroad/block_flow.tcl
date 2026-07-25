@@ -19,6 +19,16 @@
 #   NETLIST          gate level netlist from make synth-pdk
 #   FLOW_OUT         output directory
 
+# Configuration comes from the environment when OpenROAD runs natively, and from a
+# generated Tcl file when it does not. A containerised openroad wrapper mounts the
+# working directory but does not forward the environment, so anything that has to reach
+# the script has to travel in a file inside the repository. flow/Makefile writes it.
+set CONFIG_FILE [file join [file dirname [info script]] .. out pnr_config.tcl]
+if {[file exists $CONFIG_FILE]} {
+  puts "block_flow: reading configuration from $CONFIG_FILE"
+  source $CONFIG_FILE
+}
+
 proc env_or_die {name} {
   if {![info exists ::env($name)] || $::env($name) eq ""} {
     puts stderr "block_flow: $name is not set"
@@ -78,6 +88,10 @@ initialize_floorplan \
   -core_area [list $margin $margin [expr {$margin + $side}] [expr {$margin + $side}]] \
   -site CoreSite
 
+# Routing tracks come from the layer pitches in the technology LEF. Without them the
+# pin placer has nowhere to put a pin and fails with PPL-0021.
+make_tracks
+
 # SG13G2 has no dedicated tap cell: the standard cells carry their own well ties, so
 # there is no insert_tapcells step here. That is a property of the library, not an
 # omission.
@@ -90,6 +104,10 @@ place_pins -hor_layers Metal3 -ver_layers Metal4
 add_global_connection -net VDD -pin_pattern {^VDD$} -power
 add_global_connection -net VSS -pin_pattern {^VSS$} -ground
 global_connect
+
+# Name the domain's nets explicitly. Without this, PDN finds more than one candidate
+# power net in a liberty mapped netlist and refuses to guess (PDN-0181).
+set_voltage_domain -name CORE -power VDD -ground VSS
 
 define_pdn_grid -name block_grid -voltage_domains CORE
 add_pdn_ring   -grid block_grid -layers {TopMetal1 TopMetal2} \
@@ -113,6 +131,11 @@ global_placement -density $DENSITY -pad_left 1 -pad_right 1
 
 estimate_parasitics -placement
 repair_design
+
+# Logic constants already arrive as tie cell instances: flow/yosys/synth.tcl runs
+# hilomap. If they did not, the detailed router would refuse the constant nets
+# (DRT-0305), because OpenROAD types them as POWER.
+
 detailed_placement
 optimize_mirroring
 check_placement -verbose
@@ -142,6 +165,10 @@ write_def [file join $OUT ${TOP}_cts.def]
 # ---------------------------------------------------------------------------
 # Routing
 # ---------------------------------------------------------------------------
+# Signal routing is confined to Metal2 through Metal5; Metal1 carries the standard cell
+# rails and TopMetal1/TopMetal2 carry the power grid.
+set_routing_layers -signal Metal2-Metal5
+
 global_route -congestion_iterations 30
 
 estimate_parasitics -global_routing
@@ -150,8 +177,6 @@ repair_timing -hold -hold_margin 0.05
 
 detailed_route \
   -output_drc [file join $OUT ${TOP}_route_drc.rpt] \
-  -bottom_routing_layer Metal2 \
-  -top_routing_layer Metal5 \
   -verbose 0
 
 # ---------------------------------------------------------------------------

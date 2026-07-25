@@ -152,6 +152,14 @@ if {$mode eq "sg13g2"} {
   # is that every candidate goes through an identical script.
   abc -fast -liberty $lib -D $abc_clock_ps
   setundef -zero
+
+  # Map logic constants onto real tie cells. Without this, the netlist carries literal
+  # 1 and 0, OpenROAD ties them to nets it types as POWER, and the detailed router
+  # refuses to route a power net as signal (DRT-0305). A constant driven by a tie cell
+  # also has defined drive strength and does not stress the power grid, so this is what
+  # a real design wants regardless of the tool complaint.
+  hilomap -hicell sg13g2_tiehi L_HI -locell sg13g2_tielo L_LO
+
   splitnets -ports
   opt_clean -purge
 
