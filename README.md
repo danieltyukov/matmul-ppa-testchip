@@ -151,8 +151,8 @@ The two instance columns are split on purpose. LibreLane's `design__instance__co
 the total and it is **more than half fill** for every candidate here, because fill cells
 exist to satisfy density rules and are not the design. The area columns everywhere in
 this README exclude fill, so quoting the combined instance count next to them would
-compare two different things. The die renders label the total, which is what is
-physically on the die.
+compare two different things. The die renders label the design cell count for the same
+reason.
 
 Growth is measured against `results/synth/sg13g2/summary.json`. That file and
 `results/pdk/summary.json` both report SG13G2 cell area for the same RTL and disagree by

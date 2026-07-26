@@ -212,8 +212,13 @@ def contact_sheet(cards: list[dict], out: pathlib.Path, kind: str,
         entry = info.get(card["top"], {})
         title = LABELS.get(card["top"], card["top"])
         if kind == "die":
+            # The design's own cells, not design__instance__count, which is more than
+            # half fill for these candidates. Every area figure in this repository
+            # excludes fill, so the headline count should too.
+            cells = entry.get("design__instance__count__stdcell")
             detail = (f"{card['span_x']:.0f} x {card['span_y']:.0f} um"
-                      f"  |  {entry.get('design__instance__count', '?')} instances")
+                      f"  |  {cells:,} cells" if cells else
+                      f"{card['span_x']:.0f} x {card['span_y']:.0f} um")
             if entry.get("fmax_mhz"):
                 detail += f"  |  {entry['fmax_mhz']:.0f} MHz"
         else:
