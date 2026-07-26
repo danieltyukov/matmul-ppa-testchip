@@ -53,10 +53,18 @@ Run, and committed:
 Not run:
 
 - **`engine_array` through place and route.** It has a LibreLane configuration in
-  `flow/librelane/engine_array/` and a real synthesis area, but no routed result. At
-  215,987 cells it is several times the flow time of a single candidate. Its integration
-  cost is therefore a synthesis number, not a routed one, and there is no die area or
-  routed frequency for it.
+  `flow/librelane/engine_array/`, committed and reproducible with
+  `tools/run_pnr.py --tops engine_array`, and it has a real synthesis area. It has no
+  routed result. The flow was run and did not finish inside the time budget available
+  here: it synthesises, floorplans, places, gets a clock tree and reaches detailed
+  routing, where it presents OpenROAD with **1,167,004 routing guides against 288,273 for
+  the largest candidate**, roughly four times the work. Magic DRC, which is
+  single-threaded and has no thread control to tune, then scales the same way.
+
+  So the integration cost quoted above is a synthesis number. **There is no die area, no
+  routed frequency and no routed power for `engine_array`**, and the 34 percent overhead
+  should be read as a cell-area ratio at the typical corner rather than as a routed
+  result. Every routed number in this repository is a single candidate.
 - **The chip-level flow.** `flow/openroad/floorplan.tcl` and its siblings place and route
   `gemm_bench_chip` with a pad ring and SRAM macros. That sequence has never completed:
   the candidates are what has been routed, and every routed number in this repository is
