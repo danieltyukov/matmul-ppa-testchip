@@ -38,7 +38,7 @@ pending. This is the map.
 | `engine_booth4` | yes | yes | yes | yes | yes |
 | `engine_signmag` | yes | yes | yes | yes | yes |
 | `engine_bitserial` | yes | yes | yes | yes | yes |
-| `engine_array` | yes | no | no | no | no |
+| `engine_array` | yes | yes | no | no | no |
 | `bench_core` | yes | no | no | no | no |
 | `gemm_bench_chip` | yes | no | no | no | no |
 
@@ -52,10 +52,11 @@ SG13G2 area would be the area of a design nobody would build, and routing them w
 measure that same design more expensively. The candidates contain no memory, so they are
 unaffected and they are what every physical number here describes.
 
-`engine_array` is the one scope where that argument does not apply, since it holds no
-memory either. It has a LibreLane configuration in `flow/librelane/engine_array/` and it
-has not been routed: at 232,071 cells it is an order of magnitude more flow time than a
-single candidate, and it answers a different question from the one this chip is for.
+`engine_array` holds no memory, so it does carry a real SG13G2 area: 2,233,332 um2
+against 1,665,153 um2 for the five candidates standalone, a 34 percent overhead for the
+gating and isolation. It has a LibreLane configuration in `flow/librelane/engine_array/`
+and has not been routed: at 215,987 cells it is several times the flow time of a single
+candidate, and the routed comparison this chip exists for is between candidates.
 
 ## synth/
 
@@ -72,8 +73,10 @@ Yosys reports. Produced by `tools/synth_collect.py`, which drives
 | `sg13g2/<top>_sg13g2_stat.txt` | the raw report, including the per-cell histogram of PDK cells |
 
 Generic mode covers all five candidates plus `engine_array`, `bench_core` and
-`gemm_bench_chip`. SG13G2 mode covers the candidates only: the memory bearing tops
-would map 74 kbit of storage to flip-flops, which measures a design nobody would build.
+`gemm_bench_chip`. SG13G2 mode covers the candidates and `engine_array`, which is how the
+clock gating and operand isolation overhead gets a real area rather than a cell count. It
+stops short of `bench_core` and `gemm_bench_chip`: those map 74 kbit of storage to
+flip-flops without SRAM macros, which measures a design nobody would build.
 
 ## perf/
 

@@ -246,11 +246,11 @@ between the two is what place and route adds.
 
 | Candidate | Cells | Cell area | Relative | Area per MAC |
 |---|---|---|---|---|
-| `engine_infer` | 35,917 | 392,529 um2 | 1.20x | 6,133 um2 |
-| `engine_wallace` | 39,795 | 406,835 um2 | 1.24x | 6,357 um2 |
-| `engine_booth4` | 30,389 | **328,163 um2** | **1.00x** | **5,128 um2** |
-| `engine_signmag` | 38,390 | 387,504 um2 | 1.18x | 6,055 um2 |
-| `engine_bitserial` | 13,143 | 149,875 um2 | 0.46x | 2,342 um2 |
+| `engine_infer` | 35,924 | 392,580 um2 | 1.20x | 6,134 um2 |
+| `engine_wallace` | 39,802 | 406,886 um2 | 1.24x | 6,358 um2 |
+| `engine_booth4` | 30,396 | **328,214 um2** | **1.00x** | **5,128 um2** |
+| `engine_signmag` | 38,397 | 387,555 um2 | 1.18x | 6,056 um2 |
+| `engine_bitserial` | 13,149 | 149,918 um2 | 0.46x | 2,342 um2 |
 
 ![SG13G2 cell area](docs/img/ppa_area_sg13g2.png)
 
@@ -502,10 +502,12 @@ candidate including the one that was written with `*`.
 | `bench_core` | 412,685 | 85,577 |
 | `gemm_bench_chip` | 412,687 | 85,577 |
 
-`engine_array` is 232,071 cells against 174,298 for the five candidates on their own. The
-58,000 cell difference is the clock gating and operand isolation that makes the
-measurement valid, charged to shared logic rather than to any candidate. A production
-accelerator with one datapath would not pay it.
+`engine_array` is 232,071 generic cells against 174,298 for the five candidates on their
+own. On the real process the same comparison is **2,233,332 um2 against 1,665,153 um2, a
+34 percent overhead**. That difference is the clock gating and operand isolation that
+makes the measurement valid, charged to shared logic rather than to any candidate. A
+production accelerator with one datapath would not pay it, and it is the price of putting
+five datapaths on one die so they can be compared under identical conditions.
 
 The flip-flop count jumps at `bench_core` because Yosys maps the four matrix stores
 (74 kbit in total) to flip-flops: this build binds no SRAM macros. A macro-backed build
