@@ -139,27 +139,54 @@ die size.
 <details>
 <summary>Per-candidate route detail</summary>
 
-| Candidate | Instances | Utilisation | Wirelength | Synthesis to routed cell growth | Antenna |
-|---|---|---|---|---|---|
-| `engine_infer` | 90,326 | 49.6% | 1,284 mm | +13.1% | 9 |
-| `engine_wallace` | 95,771 | 50.1% | 1,453 mm | +17.2% | 20 |
-| `engine_booth4` | 75,990 | 50.6% | 1,120 mm | +16.8% | 21 |
-| `engine_signmag` | 78,552 | 50.6% | 1,396 mm | +1.7% | 2 |
-| `engine_bitserial` | 30,628 | 56.1% | 414 mm | +23.7% | 1 |
+| Candidate | Design cells | Fill cells | Utilisation | Wirelength | Synthesis to routed cell growth | Antenna |
+|---|---|---|---|---|---|---|
+| `engine_infer` | 37,459 | 52,867 | 49.6% | 1,284 mm | +13.1% | 9 |
+| `engine_wallace` | 40,422 | 55,349 | 50.1% | 1,453 mm | +17.2% | 20 |
+| `engine_booth4` | 31,710 | 44,280 | 50.6% | 1,120 mm | +16.8% | 21 |
+| `engine_signmag` | 33,019 | 45,533 | 50.6% | 1,396 mm | +1.7% | 2 |
+| `engine_bitserial` | 13,577 | 17,051 | 56.1% | 414 mm | +23.7% | 1 |
+
+The two instance columns are split on purpose. LibreLane's `design__instance__count` is
+the total and it is **more than half fill** for every candidate here, because fill cells
+exist to satisfy density rules and are not the design. The area columns everywhere in
+this README exclude fill, so quoting the combined instance count next to them would
+compare two different things. The die renders label the total, which is what is
+physically on the die.
+
+Growth is measured against `results/synth/sg13g2/summary.json`. That file and
+`results/pdk/summary.json` both report SG13G2 cell area for the same RTL and disagree by
+about 1 percent, which is not an error in either: the first maps at the typical corner
+and `tools/pdk_ppa.py` maps at the slow corner, and ABC picks different cells when the
+cell delays change. `engine_wallace` is 406,886 um2 at typical and 403,449 um2 at slow.
+Quote one, and say which.
 
 </details>
 
-#### One caveat about repeatability
+#### The flow is deterministic, so these differences are real
 
-`engine_bitserial` was routed twice from the identical configuration during this work.
-The two runs gave **67.1 MHz and 77.3 MHz**, a 15 percent spread, from cell areas that
-differed by 0.04 percent. Multi-threaded detailed routing and timing repair are not
-bit-reproducible, and the slack that falls out of them moves more than the area does.
+`engine_bitserial` was routed a second time from the identical committed configuration,
+on a machine that was running three other place and route jobs at the time. Comparing
+every key in the two `final/metrics.json` files:
 
-The table quotes the second run, because that is the run whose GDS and netlist are on
-disk and whose power was measured. Treat single-run Fmax differences of a few percent
-between candidates as noise; the 14 MHz gap between Booth and sign-magnitude is larger
-than the spread observed here, and the area numbers are solid either way.
+```
+differing keys: 0 out of 191
+```
+
+Identical worst setup slack at all three corners to the last digit of a double, identical
+routed cell area, die area, wirelength, via count, power, and identical DRC, LVS and
+antenna counts. LibreLane pins its tool seeds. **Nothing in the table above is
+run-to-run noise**, so the differences between candidates are differences between
+designs.
+
+That matters because an earlier trial of the same candidate did report 67.1 MHz rather
+than 77.3, and it would have been easy to write that down as tool variance. It was not.
+That run used an earlier `constraints/block.sdc` whose IO budget was a fraction of the
+clock period, `period * 0.2`, or 4 ns at 20 ns. Two things were wrong with it: the design
+lost 3 ns of external budget it did not need to lose, and `1/(period - slack)` stops
+being the right arithmetic when the slack moves with the period for two reasons at once.
+The committed SDC fixes the budget at 1 ns, and the 1.98 ns of critical path between the
+two runs tracks that 3 ns constraint change rather than any nondeterminism.
 
 Fmax is `1/(period - worst setup slack)` from signoff STA at `nom_slow_1p08V_125C`, the
 corner a tapeout closes at. That arithmetic is exact rather than approximate because
@@ -771,9 +798,10 @@ worse than no benchmark at all.
   routing, and costs 11 percent of frequency. At a fixed clock on the synthesis netlist
   it is a 13.5 percent power win on all-negative operands and a 4.2 percent loss on
   all-positive ones. It is beaten outright by `engine_booth4`.
-- **Place and route is not bit-reproducible.** The same candidate routed twice from the
-  identical configuration gave Fmax figures 15 percent apart. Area was stable to 0.04
-  percent. Small frequency differences between candidates are not significant.
+- **Place and route here is bit-reproducible, and that was checked rather than assumed.**
+  The same candidate routed twice from the identical configuration matched on all 191
+  metrics. An earlier 67.1 MHz figure for that candidate came from a superseded SDC whose
+  IO budget scaled with the clock period, not from tool variance.
 - **The switching-activity proxy ranks the two frontier candidates the wrong way round**
   once their real routed energy is measured. It is a screen, not a decision procedure.
 
