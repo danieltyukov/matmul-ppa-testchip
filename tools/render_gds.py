@@ -179,7 +179,11 @@ def contact_sheet(cards: list[dict], out: pathlib.Path, kind: str,
     # difference between the candidates has to be visible rather than normalised away.
     slot = max(max(c["span_x"], c["span_y"]) for c in cards)
     scale = 3.4 / slot
-    title_in, image_in, footer_in = 0.66, 3.4, 0.72
+    # The footer has to fit the tallest caption, which is four lines on the zoom sheet.
+    # Sizing it for two overlapped the bottom row of images.
+    caption_lines = 4 if kind == "zoom" else 2
+    title_in, image_in = 0.66, 3.4
+    footer_in = 0.30 + 0.17 * caption_lines
     cell_w, cell_h = 3.5, image_in + title_in
     fig_w = max(columns * cell_w, 9.4)
     fig_h = rows * cell_h + footer_in
@@ -224,13 +228,15 @@ def contact_sheet(cards: list[dict], out: pathlib.Path, kind: str,
             "which standard cell area excludes."
         )
     else:
+        # Wrapped by hand rather than by width: the first line used to run past the
+        # right edge of the figure and lose its last word.
         caption = (
             f"The same {ZOOM_UM:.0f} micrometre square of silicon in each candidate, at "
-            f"the same magnification, from the middle of the core. At this zoom they "
-            f"look alike, and that is\nthe finding: the same library, the same cell "
-            f"rows, the same router. The microarchitecture shows up in how much of this "
-            f"a candidate needs,\nwhich is the die sheet above, not in what a square of "
-            f"it looks like."
+            f"the same magnification, from the middle of the core.\nAt this zoom they "
+            f"look alike, and that is the finding: the same library, the same cell rows, "
+            f"the same router.\nThe microarchitecture shows up in how much of this a "
+            f"candidate needs, which is the die sheet above, not in\nwhat a square of it "
+            f"looks like."
         )
     fig.text(0.012, 0.10 / fig_h, caption, fontsize=9.5, color="#5a6672", va="bottom")
     fig.savefig(out, dpi=150, facecolor="white")

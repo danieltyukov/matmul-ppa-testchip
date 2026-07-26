@@ -193,17 +193,26 @@ table.
 
 The bit-serial engine is the obvious one: a third of the die of anything else, because it
 has no multiplier array at all. Less obvious is the difference in core shape.
-`engine_booth4` places as a clean rectangular mat. `engine_wallace` and `engine_signmag`
-both have visibly ragged, rounded core edges, and both route substantially more wire than
-Booth does at a comparable size. A carry-save tree and an operand converter do not tile
-as regularly as Booth's recoded partial products, and that shows up as placement the tool
-could not square off.
+`engine_booth4` places as a clean rectangular mat, while `engine_wallace` and
+`engine_signmag` both have visibly ragged, rounded core edges where the placer could not
+square the design off.
 
-The zoom sheet takes the same physical window of silicon from each candidate at the same
-magnification, which is where the microarchitecture is actually visible rather than just
-the die size:
+`engine_signmag` is the one where that costs something measurable. It routes **25 percent
+more wire than Booth for 3 percent more instances**, 17.8 micrometres of wire per instance
+against Booth's 14.7, the highest of any candidate. Operand conversion feeds the whole
+array from one place and does not tile the way recoded partial products do. That wire is
+where a good part of its frequency went.
+
+The zoom sheet takes the same 60 micrometre square from the middle of each core at one
+magnification, and its result is a negative one worth keeping:
 
 ![Layout zoom contact sheet](docs/img/layout_zoom_contact_sheet.png)
+
+At that magnification all five look alike, because they are the same standard cell
+library placed in the same cell rows by the same router. There is no visible signature of
+a Wallace tree or a Booth recoder in a square of silicon. The microarchitecture shows up
+in **how much** of this a candidate needs, which is the die sheet above, not in what any
+one piece of it looks like.
 
 ![engine_bitserial routed](docs/img/layout_engine_bitserial.png)
 
