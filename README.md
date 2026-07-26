@@ -538,11 +538,13 @@ five datapaths on one die so they can be compared under identical conditions.
 
 That 34 percent is a **synthesis** cell-area ratio at the typical corner, and it is the
 one number in this section with no routed figure behind it. `engine_array` was put through
-place and route and did not finish within the time available: it synthesises, places, gets
-a clock tree and reaches detailed routing, where it hands OpenROAD 1,167,004 routing
-guides against 288,273 for the largest candidate. **There is no die area, no routed
-frequency and no routed power for `engine_array`.** Its configuration is committed and
-`tools/run_pnr.py --tops engine_array` reproduces the attempt.
+place and route and did not finish within the time available here. It is roughly four
+times the routing problem of the largest candidate, handing OpenROAD 1,167,004 routing
+guides against 288,273, and the single-threaded Magic DRC signoff scales the same way.
+**There is no die area, no routed frequency and no routed power for `engine_array` in
+`results/pnr/`.** Its configuration is committed, so
+`tools/run_pnr.py --tops engine_array` reproduces the attempt and finishes the
+measurement.
 
 The flip-flop count jumps at `bench_core` because Yosys maps the four matrix stores
 (74 kbit in total) to flip-flops: this build binds no SRAM macros. A macro-backed build
@@ -788,8 +790,8 @@ worse than no benchmark at all.
   block. `gemm_bench_chip`, with its pad ring and SRAM macros, has not been through place
   and route at all.
 - **`engine_array` has no routed result.** Its place and route was attempted and did not
-  complete in the time available, reaching detailed routing. The 34 percent integration
-  overhead is therefore a synthesis cell-area ratio, not a die-area one.
+  complete in the time available. The 34 percent integration overhead is therefore a
+  synthesis cell-area ratio, not a die-area one.
 - **Synthesis area and routed area are different numbers** and are labelled apart
   everywhere. Yosys generic cell counts are not PDK area; PDK cell area is not die area.
 - **Gate equivalents are not area, and logic depth is not delay.** Both are counts.

@@ -56,10 +56,9 @@ Not run:
   `flow/librelane/engine_array/`, committed and reproducible with
   `tools/run_pnr.py --tops engine_array`, and it has a real synthesis area. It has no
   routed result. The flow was run and did not finish inside the time budget available
-  here: it synthesises, floorplans, places, gets a clock tree and reaches detailed
-  routing, where it presents OpenROAD with **1,167,004 routing guides against 288,273 for
-  the largest candidate**, roughly four times the work. Magic DRC, which is
-  single-threaded and has no thread control to tune, then scales the same way.
+  here. It presents OpenROAD with **1,167,004 routing guides against 288,273 for the
+  largest candidate**, roughly four times the routing problem, and Magic DRC, which is
+  single-threaded and has no thread control to tune, scales the same way.
 
   So the integration cost quoted above is a synthesis number. **There is no die area, no
   routed frequency and no routed power for `engine_array`**, and the 34 percent overhead
