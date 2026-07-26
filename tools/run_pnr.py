@@ -238,7 +238,23 @@ def harvest(top: str) -> dict | None:
 
 
 def write_summary(entries: dict) -> None:
+    """Merge these candidates into the committed summary, preserving the rest.
+
+    Running one candidate must not delete the other rows. Replacing the file wholesale
+    meant `--tops engine_array` silently reduced a five-candidate table to one row, and
+    the loss only showed up as a chart with one bar in it.
+    """
     RESULTS.mkdir(parents=True, exist_ok=True)
+    existing = {}
+    summary = RESULTS / "summary.json"
+    if summary.exists():
+        existing = json.loads(summary.read_text()).get("candidates", {})
+    # Freshly harvested rows win; anything not in this run is carried through untouched.
+    entries = {**existing, **entries}
+    # Keep the committed order stable so a re-harvest is a clean diff rather than a
+    # reordering of the whole file.
+    order = [t for t in SOURCES if t in entries] + [t for t in entries if t not in SOURCES]
+    entries = {t: entries[t] for t in order}
     payload = {
         "source": "tools/run_pnr.py",
         "flow": "LibreLane Classic, ihp-sg13g2",
