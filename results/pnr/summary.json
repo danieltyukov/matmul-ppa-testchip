@@ -56,6 +56,58 @@
       "design__max_slew_violation__count": 0,
       "design__max_cap_violation__count": 0
     },
+    "engine_wallace": {
+      "top": "engine_wallace",
+      "clock_period_ns": 20.0,
+      "setup_slack_ns": {
+        "nom_slow_1p08V_125C": 7.166957008499534,
+        "nom_typ_1p20V_25C": 11.403858624640135,
+        "nom_fast_1p32V_m40C": 13.923653735195591
+      },
+      "hold_slack_ns": {
+        "nom_slow_1p08V_125C": 0.2967153273731379,
+        "nom_typ_1p20V_25C": 0.3246296101596068,
+        "nom_fast_1p32V_m40C": 0.10999534927561831
+      },
+      "reg_to_reg_slack_ns": {
+        "nom_slow_1p08V_125C": Infinity,
+        "nom_typ_1p20V_25C": Infinity,
+        "nom_fast_1p32V_m40C": Infinity
+      },
+      "signoff_corner": "nom_slow_1p08V_125C",
+      "fmax_mhz": 77.92,
+      "fmax_mhz_by_corner": {
+        "nom_slow_1p08V_125C": 77.92,
+        "nom_typ_1p20V_25C": 116.33,
+        "nom_fast_1p32V_m40C": 164.57
+      },
+      "gds": "build/pnr/engine_wallace.gds",
+      "design__die__area": 993862,
+      "design__core__area": 951678,
+      "design__instance__area": 951678,
+      "design__instance__area__stdcell": 476959,
+      "design__instance__area__class:fill_cell": 474720,
+      "design__instance__area__class:timing_repair_buffer": 84048.5,
+      "design__instance__utilization": 0.501176,
+      "design__instance__count": 95771,
+      "design__instance__count__stdcell": 40422,
+      "design__instance__count__class:sequential_cell": 513,
+      "route__wirelength": 1452632,
+      "route__vias": 275361,
+      "route__net": 40576,
+      "power__total": 0.06843502074480057,
+      "power__internal__total": 0.03094513900578022,
+      "power__switching__total": 0.03745650872588158,
+      "power__leakage__total": 3.3372129109920934e-05,
+      "magic__drc_error__count": 0,
+      "klayout__drc_error__count": 0,
+      "design__lvs_error__count": 0,
+      "route__drc_errors": 0,
+      "route__antenna_violation__count": 20,
+      "design__max_fanout_violation__count": 0,
+      "design__max_slew_violation__count": 10,
+      "design__max_cap_violation__count": 0
+    },
     "engine_booth4": {
       "top": "engine_booth4",
       "clock_period_ns": 20.0,

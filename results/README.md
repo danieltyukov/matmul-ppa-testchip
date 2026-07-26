@@ -33,18 +33,18 @@ pending. This is the map.
 
 | Scope | Generic synth | SG13G2 synth | PDK timing and power | Place and route | Routed power |
 |---|---|---|---|---|---|
-| `engine_infer` | yes | yes | yes | running | no |
-| `engine_wallace` | yes | yes | yes | running | no |
-| `engine_booth4` | yes | yes | yes | running | no |
-| `engine_signmag` | yes | yes | yes | running | no |
+| `engine_infer` | yes | yes | yes | yes | yes |
+| `engine_wallace` | yes | yes | yes | yes | yes |
+| `engine_booth4` | yes | yes | yes | yes | yes |
+| `engine_signmag` | yes | yes | yes | yes | yes |
 | `engine_bitserial` | yes | yes | yes | yes | yes |
 | `engine_array` | yes | no | no | no | no |
 | `bench_core` | yes | no | no | no | no |
 | `gemm_bench_chip` | yes | no | no | no | no |
 
-"running" means the LibreLane flow for that candidate is in progress at the same
-constraint as `engine_bitserial` and its row lands in `summary.json` when it finishes.
-No number appears in this repository before its flow has run.
+All five candidates are routed at the identical constraint and all five carry a power
+number measured on their own routed netlist. No number appears in this repository before
+its flow has run.
 
 The three integration scopes stop at generic synthesis for one reason: this build binds
 no SRAM macros, so `memory_map` turns 74 kbit of matrix store into flip-flops. Their

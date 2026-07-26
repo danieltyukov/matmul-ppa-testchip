@@ -61,31 +61,31 @@
         "seed": 20260725
       }
     },
-    "engine_signmag": {
-      "top": "engine_signmag",
-      "netlist": "flow/librelane/engine_signmag/runs/pnr/final/nl/engine_signmag.nl.v",
-      "spef": "flow/librelane/engine_signmag/runs/pnr/final/spef/nom/engine_signmag.nom.spef",
+    "engine_wallace": {
+      "top": "engine_wallace",
+      "netlist": "flow/librelane/engine_wallace/runs/pnr/final/nl/engine_wallace.nl.v",
+      "spef": "flow/librelane/engine_wallace/runs/pnr/final/spef/nom/engine_wallace.nom.spef",
       "functional": "pass",
       "power_corner": "typ_1p20V_25C",
       "clock_ns": 20.0,
       "power": {
         "sequential": {
-          "internal_w": 0.00163989398,
-          "switching_w": 7.4774216e-05,
-          "leakage_w": 3.01849951e-07,
-          "total_w": 0.0017149701
+          "internal_w": 0.00164012075,
+          "switching_w": 9.1102469e-05,
+          "leakage_w": 3.02255984e-07,
+          "total_w": 0.00173152541
         },
         "combinational": {
-          "internal_w": 0.00215167063,
-          "switching_w": 0.00330832601,
-          "leakage_w": 5.63851063e-06,
-          "total_w": 0.00546563556
+          "internal_w": 0.00264957547,
+          "switching_w": 0.00368748186,
+          "leakage_w": 6.88597675e-06,
+          "total_w": 0.00634394353
         },
         "clock": {
-          "internal_w": 0.000726846862,
-          "switching_w": 0.000484168995,
-          "leakage_w": 2.10172821e-05,
-          "total_w": 0.00123203313
+          "internal_w": 0.000736129819,
+          "switching_w": 0.000516613771,
+          "leakage_w": 2.61549703e-05,
+          "total_w": 0.00127889856
         },
         "macro": {
           "internal_w": 0.0,
@@ -100,15 +100,15 @@
           "total_w": 0.0
         },
         "total": {
-          "internal_w": 0.00451843766,
-          "switching_w": 0.00386726949,
-          "leakage_w": 2.69575903e-05,
-          "total_w": 0.00841266382
+          "internal_w": 0.00502585107,
+          "switching_w": 0.00429519918,
+          "leakage_w": 3.33428361e-05,
+          "total_w": 0.00935439393
         }
       },
-      "energy_per_tile_pj": 429.396,
+      "energy_per_tile_pj": 477.464,
       "activity_annotation": {
-        "annotated_pins": 109922,
+        "annotated_pins": 136625,
         "unannotated_pins": 0,
         "coverage": 1.0
       },
@@ -166,6 +166,63 @@
       "energy_per_tile_pj": 419.051,
       "activity_annotation": {
         "annotated_pins": 104659,
+        "unannotated_pins": 0,
+        "coverage": 1.0
+      },
+      "stimulus": {
+        "tiles": 48,
+        "neg_fraction": 0.5,
+        "seed": 20260725
+      }
+    },
+    "engine_signmag": {
+      "top": "engine_signmag",
+      "netlist": "flow/librelane/engine_signmag/runs/pnr/final/nl/engine_signmag.nl.v",
+      "spef": "flow/librelane/engine_signmag/runs/pnr/final/spef/nom/engine_signmag.nom.spef",
+      "functional": "pass",
+      "power_corner": "typ_1p20V_25C",
+      "clock_ns": 20.0,
+      "power": {
+        "sequential": {
+          "internal_w": 0.00163989398,
+          "switching_w": 7.4774216e-05,
+          "leakage_w": 3.01849951e-07,
+          "total_w": 0.0017149701
+        },
+        "combinational": {
+          "internal_w": 0.00215167063,
+          "switching_w": 0.00330832601,
+          "leakage_w": 5.63851063e-06,
+          "total_w": 0.00546563556
+        },
+        "clock": {
+          "internal_w": 0.000726846862,
+          "switching_w": 0.000484168995,
+          "leakage_w": 2.10172821e-05,
+          "total_w": 0.00123203313
+        },
+        "macro": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "pad": {
+          "internal_w": 0.0,
+          "switching_w": 0.0,
+          "leakage_w": 0.0,
+          "total_w": 0.0
+        },
+        "total": {
+          "internal_w": 0.00451843766,
+          "switching_w": 0.00386726949,
+          "leakage_w": 2.69575903e-05,
+          "total_w": 0.00841266382
+        }
+      },
+      "energy_per_tile_pj": 429.396,
+      "activity_annotation": {
+        "annotated_pins": 109922,
         "unannotated_pins": 0,
         "coverage": 1.0
       },
