@@ -65,10 +65,12 @@ Not run:
   times the routing problem, and Magic DRC, which is single-threaded and has no thread
   control to tune, scales the same way.
 
-  So the integration cost quoted above is a synthesis number. **There is no die area, no
-  routed frequency and no routed power for `engine_array`**, and the 34 percent overhead
-  should be read as a cell-area ratio at the typical corner rather than as a routed
-  result. Every routed number in this repository is a single candidate.
+  So the 34 percent integration cost quoted alongside the candidates stays a synthesis
+  cell-area ratio at the typical corner. `engine_array` does have a die area, a routed
+  frequency and a routed power, listed in the README's integration-cost section, but they
+  come from a run that fails DRC signoff and so cannot be set beside five results that
+  pass it. **Every routed number used for comparison in this repository is a single
+  candidate.**
 - **The chip-level flow.** `flow/openroad/floorplan.tcl` and its siblings place and route
   `gemm_bench_chip` with a pad ring and SRAM macros. That sequence has never completed:
   the candidates are what has been routed, and every routed number in this repository is

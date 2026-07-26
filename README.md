@@ -810,9 +810,12 @@ worse than no benchmark at all.
 - **The whole-chip flow has never been run.** Every routed number here is a candidate
   block. `gemm_bench_chip`, with its pad ring and SRAM macros, has not been through place
   and route at all.
-- **`engine_array` has no routed result.** Its place and route was attempted and did not
-  complete in the time available. The 34 percent integration overhead is therefore a
-  synthesis cell-area ratio, not a die-area one.
+- **`engine_array` is routed but not signoff clean.** Its place and route completed and
+  produced real metrics, then failed DRC with 12 Magic and 2 KLayout errors plus 15 max
+  capacitance violations. Because a design that fails signoff is not comparable with five
+  that pass it, no `engine_array` row appears in any comparison table and the 34 percent
+  integration overhead quoted alongside them stays a synthesis cell-area ratio. Its
+  routed numbers are reported on their own terms in the integration-cost section.
 - **Synthesis area and routed area are different numbers** and are labelled apart
   everywhere. Yosys generic cell counts are not PDK area; PDK cell area is not die area.
 - **Gate equivalents are not area, and logic depth is not delay.** Both are counts.
