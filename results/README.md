@@ -55,8 +55,13 @@ unaffected and they are what every physical number here describes.
 `engine_array` holds no memory, so it does carry a real SG13G2 area: 2,233,332 um2
 against 1,665,153 um2 for the five candidates standalone, a 34 percent overhead for the
 gating and isolation. It has a LibreLane configuration in `flow/librelane/engine_array/`
-and has not been routed: at 215,987 cells it is several times the flow time of a single
-candidate, and the routed comparison this chip exists for is between candidates.
+and it **has** since been routed, but it is not signoff clean, which is why the table
+above still records no routed columns for it. The run reaches a 3,814,860 um2 die at
+51.0% utilisation with +0.143 ns worst setup slack, 388 mW and 0 LVS errors, and then
+fails DRC with 12 Magic and 2 KLayout errors plus 15 max capacitance violations. A design
+that fails signoff is not comparable with five that pass it, so its numbers live in the
+integration-cost discussion in the README and nowhere else. See that section for what the
+result means: per-block signoff does not imply chip signoff.
 
 ## synth/
 

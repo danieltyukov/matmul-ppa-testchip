@@ -537,14 +537,35 @@ production accelerator with one datapath would not pay it, and it is the price o
 five datapaths on one die so they can be compared under identical conditions.
 
 That 34 percent is a **synthesis** cell-area ratio at the typical corner, and it is the
-one number in this section with no routed figure behind it. `engine_array` was put through
-place and route and did not finish within the time available here. It is roughly four
-times the routing problem of the largest candidate, handing OpenROAD 1,167,004 routing
-guides against 288,273, and the single-threaded Magic DRC signoff scales the same way.
-**There is no die area, no routed frequency and no routed power for `engine_array` in
-`results/pnr/`.** Its configuration is committed, so
-`tools/run_pnr.py --tops engine_array` reproduces the attempt and finishes the
-measurement.
+only cell-area ratio in this section. `engine_array` has since completed place and route,
+and the result is the reason it is reported separately from the five candidates rather
+than in the same table: **it routes, it is LVS clean, and it does not pass DRC signoff.**
+
+| metric | `engine_array`, post route |
+| --- | --- |
+| die area | 3,814,860 um2, 3.815 mm2 |
+| standard cell area | 1,903,440 um2, 51.0% core utilisation |
+| routed wirelength | 9,438,759 um |
+| worst setup slack | +0.143 ns, met with almost no margin |
+| total power | 388 mW |
+| LVS errors | 0 |
+| router DRC | 0 |
+| **Magic DRC** | **12** |
+| **KLayout DRC** | **2** |
+| **max capacitance violations** | **15** |
+
+Every one of the five candidates signs off clean on its own. Assembled onto one die with
+its clock gates and operand isolation, the same logic does not. That is the finding worth
+taking from this section: per-block signoff does not imply chip signoff, and the
+integration wrapper is where it breaks. The 14 DRC errors and 15 max-cap violations are
+real and unfixed, so **no `engine_array` row appears in the comparison tables and its
+numbers must not be read as a signed-off result.** It is roughly four times the routing
+problem of the largest candidate, handing OpenROAD 1,167,004 routing guides against
+288,273, and the single-threaded Magic DRC signoff scales the same way.
+
+Its configuration is committed, so
+`tools/run_pnr.py --tops engine_array` reproduces the run, and fixing the violations is
+the obvious next piece of work for anyone forking this.
 
 The flip-flop count jumps at `bench_core` because Yosys maps the four matrix stores
 (74 kbit in total) to flip-flops: this build binds no SRAM macros. A macro-backed build

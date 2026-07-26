@@ -52,13 +52,18 @@ Run, and committed:
 
 Not run:
 
-- **`engine_array` through place and route.** It has a LibreLane configuration in
+- **`engine_array` routed, but does not sign off clean.** It has a LibreLane configuration in
   `flow/librelane/engine_array/`, committed and reproducible with
-  `tools/run_pnr.py --tops engine_array`, and it has a real synthesis area. It has no
-  routed result. The flow was run and did not finish inside the time budget available
-  here. It presents OpenROAD with **1,167,004 routing guides against 288,273 for the
-  largest candidate**, roughly four times the routing problem, and Magic DRC, which is
-  single-threaded and has no thread control to tune, scales the same way.
+  `tools/run_pnr.py --tops engine_array`, and it has completed place and route. The
+  routed result exists (3,814,860 um2 die, 51.0% utilisation, +0.143 ns worst setup
+  slack, 388 mW, 9,438,759 um wirelength, 0 LVS errors, 0 router DRC) but it **does not
+  pass DRC signoff**: 12 Magic DRC errors, 2 KLayout DRC errors and 15 max capacitance
+  violations, all real and unfixed. Those numbers therefore appear only in the
+  integration-cost discussion and never in a comparison table, because a design that
+  fails signoff is not comparable with five that pass it. It presents OpenROAD with
+  **1,167,004 routing guides against 288,273 for the largest candidate**, roughly four
+  times the routing problem, and Magic DRC, which is single-threaded and has no thread
+  control to tune, scales the same way.
 
   So the integration cost quoted above is a synthesis number. **There is no die area, no
   routed frequency and no routed power for `engine_array`**, and the 34 percent overhead
