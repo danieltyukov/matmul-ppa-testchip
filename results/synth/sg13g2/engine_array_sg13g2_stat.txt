@@ -1,0 +1,494 @@
+
+40. Printing statistics.
+
+=== $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_bitserial ===
+
+   Number of wires:               7209
+   Number of wire bits:           8522
+   Number of public wires:          45
+   Number of public wire bits:    1358
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               7738
+     $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     sg13g2_a21o_1                  96
+     sg13g2_a21oi_1                697
+     sg13g2_a221oi_1                32
+     sg13g2_and2_1                 144
+     sg13g2_and3_1                  48
+     sg13g2_dfrbpq_1               277
+     sg13g2_inv_1                  957
+     sg13g2_mux2_2                 160
+     sg13g2_nand2_1               1263
+     sg13g2_nand2b_1               144
+     sg13g2_nand3_1                177
+     sg13g2_nand4_1                 16
+     sg13g2_nor2_1                1163
+     sg13g2_nor2b_1                 80
+     sg13g2_nor3_1                 129
+     sg13g2_o21ai_1               1003
+     sg13g2_or3_2                   16
+     sg13g2_tielo                    6
+     sg13g2_xnor2_1               1168
+     sg13g2_xor2_1                 161
+
+   Area for cell type $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank is unknown!
+
+   Chip area for module '$paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_bitserial': 83150.323200
+
+=== $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_booth4 ===
+
+   Number of wires:                 11
+   Number of wire bits:           1069
+   Number of public wires:          11
+   Number of public wire bits:    1069
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 25
+     $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_booth4     16
+     $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     sg13g2_dfrbpq_1                 1
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
+
+   Area for cell type $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank is unknown!
+   Area for cell type $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_booth4 is unknown!
+
+   Chip area for module '$paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_booth4': 99.792000
+
+=== $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_infer ===
+
+   Number of wires:                 11
+   Number of wire bits:           1069
+   Number of public wires:          11
+   Number of public wire bits:    1069
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 25
+     $paramod$5a0d1fbbc9171ef3c07fc1163ebe02ef846579bb\dot_infer     16
+     $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     sg13g2_dfrbpq_1                 1
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
+
+   Area for cell type $paramod$5a0d1fbbc9171ef3c07fc1163ebe02ef846579bb\dot_infer is unknown!
+   Area for cell type $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank is unknown!
+
+   Chip area for module '$paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_infer': 99.792000
+
+=== $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_signmag ===
+
+   Number of wires:                 11
+   Number of wire bits:           1069
+   Number of public wires:          11
+   Number of public wire bits:    1069
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 25
+     $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_signmag     16
+     $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     sg13g2_dfrbpq_1                 1
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
+
+   Area for cell type $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank is unknown!
+   Area for cell type $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_signmag is unknown!
+
+   Chip area for module '$paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_signmag': 99.792000
+
+=== $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_wallace ===
+
+   Number of wires:                 11
+   Number of wire bits:           1069
+   Number of public wires:          11
+   Number of public wire bits:    1069
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 25
+     $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_wallace     16
+     $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     sg13g2_dfrbpq_1                 1
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
+
+   Area for cell type $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank is unknown!
+   Area for cell type $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_wallace is unknown!
+
+   Chip area for module '$paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_wallace': 99.792000
+
+=== $paramod$2edc4b218e303079ab5bea3dd9bae5801edac431\csa_reduce ===
+
+   Number of wires:                448
+   Number of wire bits:            605
+   Number of public wires:           3
+   Number of public wire bits:     160
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                477
+     sg13g2_a21o_1                  13
+     sg13g2_a21oi_1                  1
+     sg13g2_inv_1                   57
+     sg13g2_nand2_1                115
+     sg13g2_o21ai_1                102
+     sg13g2_tielo                    2
+     sg13g2_xnor2_1                169
+     sg13g2_xor2_1                  18
+
+   Chip area for module '$paramod$2edc4b218e303079ab5bea3dd9bae5801edac431\csa_reduce': 4973.270400
+
+=== $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_booth4 ===
+
+   Number of wires:                914
+   Number of wire bits:           1411
+   Number of public wires:          45
+   Number of public wire bits:     542
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               1112
+     $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce      1
+     $paramod$8513fb6036e5ae974142aff772dae5a8e825eebf\csa_reduce      4
+     sg13g2_a21o_1                   8
+     sg13g2_a21oi_1                261
+     sg13g2_a221oi_1                10
+     sg13g2_and2_1                  22
+     sg13g2_and3_1                   8
+     sg13g2_inv_1                  130
+     sg13g2_nand2_1                105
+     sg13g2_nand2b_1                 4
+     sg13g2_nand3_1                 23
+     sg13g2_nand3b_1                 4
+     sg13g2_nor2_1                  50
+     sg13g2_nor2b_1                  8
+     sg13g2_nor3_1                  18
+     sg13g2_o21ai_1                 56
+     sg13g2_or3_2                    1
+     sg13g2_tielo                   96
+     sg13g2_xnor2_1                229
+     sg13g2_xor2_1                  74
+
+   Area for cell type $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce is unknown!
+   Area for cell type $paramod$8513fb6036e5ae974142aff772dae5a8e825eebf\csa_reduce is unknown!
+
+   Chip area for module '$paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_booth4': 10897.286400
+
+=== $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_signmag ===
+
+   Number of wires:               1166
+   Number of wire bits:           2023
+   Number of public wires:          25
+   Number of public wire bits:     882
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               1484
+     $paramod$2edc4b218e303079ab5bea3dd9bae5801edac431\csa_reduce      4
+     $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce      1
+     sg13g2_a21o_1                  28
+     sg13g2_a21oi_1                 33
+     sg13g2_a221oi_1                10
+     sg13g2_and2_1                  49
+     sg13g2_and3_1                   4
+     sg13g2_inv_1                  115
+     sg13g2_nand2_1                199
+     sg13g2_nand2b_1                28
+     sg13g2_nand3_1                 34
+     sg13g2_nand4_1                  9
+     sg13g2_nor2_1                 299
+     sg13g2_nor2b_1                  8
+     sg13g2_nor3_1                  17
+     sg13g2_nor4_1                   4
+     sg13g2_o21ai_1                149
+     sg13g2_or2_2                    9
+     sg13g2_or3_2                    1
+     sg13g2_tielo                  256
+     sg13g2_xnor2_1                121
+     sg13g2_xor2_1                 106
+
+   Area for cell type $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce is unknown!
+   Area for cell type $paramod$2edc4b218e303079ab5bea3dd9bae5801edac431\csa_reduce is unknown!
+
+   Chip area for module '$paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_signmag': 13083.638400
+
+=== $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_wallace ===
+
+   Number of wires:                590
+   Number of wire bits:           1395
+   Number of public wires:          21
+   Number of public wire bits:     826
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                912
+     $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce      1
+     $paramod$6709824093ce99fb69ec81b8155a748420bb6a07\csa_reduce      4
+     sg13g2_a21o_1                   8
+     sg13g2_a21oi_1                 33
+     sg13g2_a221oi_1                10
+     sg13g2_and2_1                  22
+     sg13g2_and3_1                   4
+     sg13g2_inv_1                  122
+     sg13g2_nand2_1                 61
+     sg13g2_nand3_1                 11
+     sg13g2_nor2_1                 290
+     sg13g2_nor3_1                   6
+     sg13g2_o21ai_1                 36
+     sg13g2_or3_2                    1
+     sg13g2_tielo                  144
+     sg13g2_xnor2_1                 85
+     sg13g2_xor2_1                  74
+
+   Area for cell type $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce is unknown!
+   Area for cell type $paramod$6709824093ce99fb69ec81b8155a748420bb6a07\csa_reduce is unknown!
+
+   Chip area for module '$paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_wallace': 7856.352000
+
+=== $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce ===
+
+   Number of wires:                155
+   Number of wire bits:            260
+   Number of public wires:           3
+   Number of public wire bits:     108
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                188
+     sg13g2_a21oi_1                 16
+     sg13g2_and2_1                   1
+     sg13g2_inv_1                   48
+     sg13g2_nand2_1                  2
+     sg13g2_o21ai_1                 49
+     sg13g2_tielo                    1
+     sg13g2_xnor2_1                 70
+     sg13g2_xor2_1                   1
+
+   Chip area for module '$paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce': 1912.377600
+
+=== $paramod$5a0d1fbbc9171ef3c07fc1163ebe02ef846579bb\dot_infer ===
+
+   Number of wires:               1940
+   Number of wire bits:           2019
+   Number of public wires:           3
+   Number of public wire bits:      82
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               1955
+     sg13g2_a21o_1                  93
+     sg13g2_a21oi_1                 93
+     sg13g2_a22oi_1                 36
+     sg13g2_and2_1                  65
+     sg13g2_inv_1                  228
+     sg13g2_nand2_1                252
+     sg13g2_nand2b_1                63
+     sg13g2_nand3_1                 14
+     sg13g2_nand3b_1                 2
+     sg13g2_nand4_1                  5
+     sg13g2_nor2_1                 157
+     sg13g2_nor2b_1                 83
+     sg13g2_nor3_1                  40
+     sg13g2_nor4_1                  36
+     sg13g2_o21ai_1                148
+     sg13g2_or2_2                    3
+     sg13g2_xnor2_1                359
+     sg13g2_xor2_1                 278
+
+   Chip area for module '$paramod$5a0d1fbbc9171ef3c07fc1163ebe02ef846579bb\dot_infer': 20122.149600
+
+=== $paramod$6709824093ce99fb69ec81b8155a748420bb6a07\csa_reduce ===
+
+   Number of wires:                506
+   Number of wire bits:            679
+   Number of public wires:           3
+   Number of public wire bits:     176
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                535
+     sg13g2_a21o_1                  11
+     sg13g2_a21oi_1                  1
+     sg13g2_inv_1                   27
+     sg13g2_nand2_1                174
+     sg13g2_nor2_1                   1
+     sg13g2_o21ai_1                102
+     sg13g2_tielo                    2
+     sg13g2_xnor2_1                201
+     sg13g2_xor2_1                  16
+
+   Chip area for module '$paramod$6709824093ce99fb69ec81b8155a748420bb6a07\csa_reduce': 5655.484800
+
+=== $paramod$8513fb6036e5ae974142aff772dae5a8e825eebf\csa_reduce ===
+
+   Number of wires:                210
+   Number of wire bits:            319
+   Number of public wires:           3
+   Number of public wire bits:     112
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                239
+     sg13g2_a21o_1                   1
+     sg13g2_a21oi_1                 13
+     sg13g2_and2_1                   1
+     sg13g2_inv_1                   40
+     sg13g2_nand2_1                 33
+     sg13g2_o21ai_1                 56
+     sg13g2_tielo                    1
+     sg13g2_xnor2_1                 92
+     sg13g2_xor2_1                   2
+
+   Chip area for module '$paramod$8513fb6036e5ae974142aff772dae5a8e825eebf\csa_reduce': 2476.656000
+
+=== $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank ===
+
+   Number of wires:               4632
+   Number of wire bits:           5430
+   Number of public wires:           6
+   Number of public wire bits:     804
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               5138
+     sg13g2_a21o_1                  80
+     sg13g2_a21oi_1                208
+     sg13g2_a221oi_1                48
+     sg13g2_and2_1                  96
+     sg13g2_dfrbpq_1               512
+     sg13g2_inv_1                  977
+     sg13g2_nand2_1                416
+     sg13g2_nand2b_1               193
+     sg13g2_nand3_1                352
+     sg13g2_nand4_1                272
+     sg13g2_nor2_1                 256
+     sg13g2_nor2b_1                 48
+     sg13g2_nor3_1                  32
+     sg13g2_o21ai_1                848
+     sg13g2_or2_2                   16
+     sg13g2_or3_2                   32
+     sg13g2_xnor2_1                464
+     sg13g2_xor2_1                 288
+
+   Chip area for module '$paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank': 67626.316800
+
+=== clock_gate ===
+
+   Number of wires:                  6
+   Number of wire bits:              6
+   Number of public wires:           5
+   Number of public wire bits:       5
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  3
+     $_DLATCH_N_                     1
+     sg13g2_and2_1                   1
+     sg13g2_or2_2                    1
+
+   Area for cell type $_DLATCH_N_ is unknown!
+
+   Chip area for module '\clock_gate': 19.958400
+
+=== engine_array ===
+
+   Number of wires:               4463
+   Number of wire bits:           9131
+   Number of public wires:          22
+   Number of public wire bits:    4690
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               6267
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_bitserial      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_booth4      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_infer      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_signmag      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_wallace      1
+     clock_gate                      5
+     sg13g2_a21oi_1               1042
+     sg13g2_and2_1                 521
+     sg13g2_inv_1                  789
+     sg13g2_nand2_1               1042
+     sg13g2_nand3_1                  1
+     sg13g2_nor2_1                1295
+     sg13g2_nor3_1                 525
+     sg13g2_o21ai_1               1042
+
+   Area for cell type \clock_gate is unknown!
+   Area for cell type $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_bitserial is unknown!
+   Area for cell type $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_signmag is unknown!
+   Area for cell type $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_booth4 is unknown!
+   Area for cell type $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_wallace is unknown!
+   Area for cell type $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_infer is unknown!
+
+   Chip area for module '\engine_array': 49660.128000
+
+=== design hierarchy ===
+
+   engine_array                      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_bitserial      1
+       $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_booth4      1
+       $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_booth4     16
+         $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce      1
+         $paramod$8513fb6036e5ae974142aff772dae5a8e825eebf\csa_reduce      4
+       $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_infer      1
+       $paramod$5a0d1fbbc9171ef3c07fc1163ebe02ef846579bb\dot_infer     16
+       $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_signmag      1
+       $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_signmag     16
+         $paramod$2edc4b218e303079ab5bea3dd9bae5801edac431\csa_reduce      4
+         $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce      1
+       $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     $paramod$13fa62f0ba90bf2e5e1cdc0f64b407af0d64992d\engine_wallace      1
+       $paramod$41207b84a0757df02321c618679e9f5c2bc68197\dot_wallace     16
+         $paramod$420a388511e55beaa704370df27f1130881a3ec1\csa_reduce      1
+         $paramod$6709824093ce99fb69ec81b8155a748420bb6a07\csa_reduce      4
+       $paramod$b8e13ee7a640e408c79be077c2b7f6e1219eaa80\acc_bank      1
+     clock_gate                      5
+
+   Number of wires:             190602
+   Number of wire bits:         273749
+   Number of public wires:        2390
+   Number of public wire bits:   85537
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:             215987
+     $_DLATCH_N_                     5
+     sg13g2_a21o_1                4288
+     sg13g2_a21oi_1              11227
+     sg13g2_a221oi_1               752
+     sg13g2_a22oi_1                576
+     sg13g2_and2_1                3790
+     sg13g2_and3_1                 304
+     sg13g2_dfrbpq_1              2841
+     sg13g2_inv_1                26391
+     sg13g2_mux2_2                 160
+     sg13g2_nand2_1              34961
+     sg13g2_nand2b_1              2629
+     sg13g2_nand3_1               3250
+     sg13g2_nand3b_1                96
+     sg13g2_nand4_1               1600
+     sg13g2_nor2_1               16538
+     sg13g2_nor2b_1               1904
+     sg13g2_nor3_1                2110
+     sg13g2_nor4_1                 640
+     sg13g2_o21ai_1              31501
+     sg13g2_or2_2                  277
+     sg13g2_or3_2                  224
+     sg13g2_tiehi                    4
+     sg13g2_tielo                 8334
+     sg13g2_xnor2_1              49120
+     sg13g2_xor2_1               12465
+
+   Area for cell type $_DLATCH_N_ is unknown!
+
+   Chip area for top module '\engine_array': 2233332.259200
+

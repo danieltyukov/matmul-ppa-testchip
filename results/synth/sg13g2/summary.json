@@ -2,18 +2,18 @@
   "source": "tools/synth_collect.py",
   "mode": "sg13g2",
   "yosys": "Yosys 0.33 (git sha1 2584903a060)",
-  "note": "Cell area in square micrometres from the IHP SG13G2 typical liberty file (sg13g2_stdcell_typ_1p20V_25C, revision 0.1.4), standard cells only. This is real PDK cell area, and it is still not a die area: no place and route has been run, so no routing, filler, tap, pad or power grid area is included. gate_equivalents is null here because the library gives exact area, and logic_depth is null because ltp does not recognise the PDK sequential cells and would report a meaningless zero. Only the candidates are synthesised in this mode: the memory bearing tops would map 74 kbit of storage to flip-flops, which measures a design nobody would build.",
+  "note": "Cell area in square micrometres from the IHP SG13G2 typical liberty file, standard cells only. No place and route, so no routing, filler, tap or pad area is included: this is a cell area sum, not a die area. Memories are mapped to flip-flops because this build binds no SRAM macros, so any memory bearing top is far larger here than a macro backed implementation would be.",
   "tops": {
     "engine_infer": {
       "top": "engine_infer",
       "mode": "sg13g2",
-      "total_cells": 35917,
-      "combinational_cells": 35404,
+      "total_cells": 35924,
+      "combinational_cells": 35411,
       "flip_flops": 513,
       "wire_bits": 36185,
       "gate_equivalents": null,
       "logic_depth": null,
-      "chip_area_um2": 392529.2238,
+      "chip_area_um2": 392580.027,
       "memories": 0,
       "memory_bits": 0,
       "cell_histogram": {
@@ -37,6 +37,8 @@
         "sg13g2_o21ai_1": 2685,
         "sg13g2_or2_2": 35,
         "sg13g2_or3_2": 2,
+        "sg13g2_tiehi": 1,
+        "sg13g2_tielo": 6,
         "sg13g2_xnor2_1": 6175,
         "sg13g2_xor2_1": 4943
       }
@@ -44,13 +46,13 @@
     "engine_wallace": {
       "top": "engine_wallace",
       "mode": "sg13g2",
-      "total_cells": 39795,
-      "combinational_cells": 39282,
+      "total_cells": 39802,
+      "combinational_cells": 39289,
       "flip_flops": 513,
       "wire_bits": 40063,
       "gate_equivalents": null,
       "logic_depth": null,
-      "chip_area_um2": 406835.0496,
+      "chip_area_um2": 406885.8528,
       "memories": 0,
       "memory_bits": 0,
       "cell_histogram": {
@@ -74,6 +76,8 @@
         "sg13g2_o21ai_1": 5904,
         "sg13g2_or2_2": 112,
         "sg13g2_or3_2": 48,
+        "sg13g2_tiehi": 1,
+        "sg13g2_tielo": 6,
         "sg13g2_xnor2_1": 8960,
         "sg13g2_xor2_1": 1840
       }
@@ -81,13 +85,13 @@
     "engine_booth4": {
       "top": "engine_booth4",
       "mode": "sg13g2",
-      "total_cells": 30389,
-      "combinational_cells": 29876,
+      "total_cells": 30396,
+      "combinational_cells": 29883,
       "flip_flops": 513,
       "wire_bits": 30657,
       "gate_equivalents": null,
       "logic_depth": null,
-      "chip_area_um2": 328163.2704,
+      "chip_area_um2": 328214.0736,
       "memories": 0,
       "memory_bits": 0,
       "cell_histogram": {
@@ -109,6 +113,8 @@
         "sg13g2_o21ai_1": 4941,
         "sg13g2_or2_2": 76,
         "sg13g2_or3_2": 4,
+        "sg13g2_tiehi": 1,
+        "sg13g2_tielo": 6,
         "sg13g2_xnor2_1": 7502,
         "sg13g2_xor2_1": 1742
       }
@@ -116,13 +122,13 @@
     "engine_signmag": {
       "top": "engine_signmag",
       "mode": "sg13g2",
-      "total_cells": 38390,
-      "combinational_cells": 37877,
+      "total_cells": 38397,
+      "combinational_cells": 37884,
       "flip_flops": 513,
       "wire_bits": 38658,
       "gate_equivalents": null,
       "logic_depth": null,
-      "chip_area_um2": 387503.8272,
+      "chip_area_um2": 387554.6304,
       "memories": 0,
       "memory_bits": 0,
       "cell_histogram": {
@@ -147,6 +153,8 @@
         "sg13g2_o21ai_1": 4570,
         "sg13g2_or2_2": 217,
         "sg13g2_or3_2": 32,
+        "sg13g2_tiehi": 1,
+        "sg13g2_tielo": 6,
         "sg13g2_xnor2_1": 7920,
         "sg13g2_xor2_1": 1570
       }
@@ -154,13 +162,13 @@
     "engine_bitserial": {
       "top": "engine_bitserial",
       "mode": "sg13g2",
-      "total_cells": 13143,
-      "combinational_cells": 12354,
+      "total_cells": 13149,
+      "combinational_cells": 12360,
       "flip_flops": 789,
-      "wire_bits": 13410,
+      "wire_bits": 13422,
       "gate_equivalents": null,
       "logic_depth": null,
-      "chip_area_um2": 149874.8832,
+      "chip_area_um2": 149918.4288,
       "memories": 0,
       "memory_bits": 0,
       "cell_histogram": {
@@ -183,8 +191,50 @@
         "sg13g2_o21ai_1": 1947,
         "sg13g2_or2_2": 16,
         "sg13g2_or3_2": 16,
+        "sg13g2_tielo": 6,
         "sg13g2_xnor2_1": 1664,
         "sg13g2_xor2_1": 193
+      }
+    },
+    "engine_array": {
+      "top": "engine_array",
+      "mode": "sg13g2",
+      "total_cells": 215987,
+      "combinational_cells": 213141,
+      "flip_flops": 2841,
+      "wire_bits": 273749,
+      "gate_equivalents": null,
+      "logic_depth": 1,
+      "chip_area_um2": 2233332.2592,
+      "memories": 0,
+      "memory_bits": 0,
+      "cell_histogram": {
+        "$_DLATCH_N_": 5,
+        "sg13g2_a21o_1": 4288,
+        "sg13g2_a21oi_1": 11227,
+        "sg13g2_a221oi_1": 752,
+        "sg13g2_a22oi_1": 576,
+        "sg13g2_and2_1": 3790,
+        "sg13g2_and3_1": 304,
+        "sg13g2_dfrbpq_1": 2841,
+        "sg13g2_inv_1": 26391,
+        "sg13g2_mux2_2": 160,
+        "sg13g2_nand2_1": 34961,
+        "sg13g2_nand2b_1": 2629,
+        "sg13g2_nand3_1": 3250,
+        "sg13g2_nand3b_1": 96,
+        "sg13g2_nand4_1": 1600,
+        "sg13g2_nor2_1": 16538,
+        "sg13g2_nor2b_1": 1904,
+        "sg13g2_nor3_1": 2110,
+        "sg13g2_nor4_1": 640,
+        "sg13g2_o21ai_1": 31501,
+        "sg13g2_or2_2": 277,
+        "sg13g2_or3_2": 224,
+        "sg13g2_tiehi": 4,
+        "sg13g2_tielo": 8334,
+        "sg13g2_xnor2_1": 49120,
+        "sg13g2_xor2_1": 12465
       }
     }
   }

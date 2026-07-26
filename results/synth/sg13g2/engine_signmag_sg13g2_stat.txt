@@ -3,14 +3,14 @@
 
 === engine_signmag ===
 
-   Number of wires:              38658
+   Number of wires:              37887
    Number of wire bits:          38658
-   Number of public wires:         781
+   Number of public wires:          10
    Number of public wire bits:     781
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:              38390
+   Number of cells:              38397
      sg13g2_a21o_1                 445
      sg13g2_a21oi_1               2114
      sg13g2_a221oi_1               147
@@ -32,8 +32,10 @@
      sg13g2_o21ai_1               4570
      sg13g2_or2_2                  217
      sg13g2_or3_2                   32
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
      sg13g2_xnor2_1               7920
      sg13g2_xor2_1                1570
 
-   Chip area for module '\engine_signmag': 387503.827200
+   Chip area for module '\engine_signmag': 387554.630400
 

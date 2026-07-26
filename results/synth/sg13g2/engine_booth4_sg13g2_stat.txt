@@ -3,14 +3,14 @@
 
 === engine_booth4 ===
 
-   Number of wires:              30657
+   Number of wires:              29886
    Number of wire bits:          30657
-   Number of public wires:         781
+   Number of public wires:          10
    Number of public wire bits:     781
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:              30389
+   Number of cells:              30396
      sg13g2_a21o_1                 226
      sg13g2_a21oi_1               3040
      sg13g2_a221oi_1               144
@@ -29,8 +29,10 @@
      sg13g2_o21ai_1               4941
      sg13g2_or2_2                   76
      sg13g2_or3_2                    4
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
      sg13g2_xnor2_1               7502
      sg13g2_xor2_1                1742
 
-   Chip area for module '\engine_booth4': 328163.270400
+   Chip area for module '\engine_booth4': 328214.073600
 

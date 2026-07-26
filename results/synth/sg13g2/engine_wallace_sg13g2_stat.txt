@@ -3,14 +3,14 @@
 
 === engine_wallace ===
 
-   Number of wires:              40063
+   Number of wires:              39292
    Number of wire bits:          40063
-   Number of public wires:         781
+   Number of public wires:          10
    Number of public wire bits:     781
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:              39795
+   Number of cells:              39802
      sg13g2_a21o_1                 416
      sg13g2_a21oi_1               1616
      sg13g2_a221oi_1               160
@@ -31,8 +31,10 @@
      sg13g2_o21ai_1               5904
      sg13g2_or2_2                  112
      sg13g2_or3_2                   48
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
      sg13g2_xnor2_1               8960
      sg13g2_xor2_1                1840
 
-   Chip area for module '\engine_wallace': 406835.049600
+   Chip area for module '\engine_wallace': 406885.852800
 

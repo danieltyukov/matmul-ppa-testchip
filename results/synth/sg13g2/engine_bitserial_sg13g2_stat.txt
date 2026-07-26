@@ -3,14 +3,14 @@
 
 === engine_bitserial ===
 
-   Number of wires:              13410
-   Number of wire bits:          13410
-   Number of public wires:        1058
-   Number of public wire bits:    1058
+   Number of wires:              12381
+   Number of wire bits:          13422
+   Number of public wires:          29
+   Number of public wire bits:    1070
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:              13143
+   Number of cells:              13149
      sg13g2_a21o_1                 176
      sg13g2_a21oi_1                969
      sg13g2_a221oi_1                80
@@ -30,8 +30,9 @@
      sg13g2_o21ai_1               1947
      sg13g2_or2_2                   16
      sg13g2_or3_2                   16
+     sg13g2_tielo                    6
      sg13g2_xnor2_1               1664
      sg13g2_xor2_1                 193
 
-   Chip area for module '\engine_bitserial': 149874.883200
+   Chip area for module '\engine_bitserial': 149918.428800
 

@@ -3,14 +3,14 @@
 
 === engine_infer ===
 
-   Number of wires:              36185
+   Number of wires:              35414
    Number of wire bits:          36185
-   Number of public wires:         781
+   Number of public wires:          10
    Number of public wire bits:     781
    Number of memories:               0
    Number of memory bits:            0
    Number of processes:              0
-   Number of cells:              35917
+   Number of cells:              35924
      sg13g2_a21o_1                1927
      sg13g2_a21oi_1               1753
      sg13g2_a221oi_1                51
@@ -31,8 +31,10 @@
      sg13g2_o21ai_1               2685
      sg13g2_or2_2                   35
      sg13g2_or3_2                    2
+     sg13g2_tiehi                    1
+     sg13g2_tielo                    6
      sg13g2_xnor2_1               6175
      sg13g2_xor2_1                4943
 
-   Chip area for module '\engine_infer': 392529.223800
+   Chip area for module '\engine_infer': 392580.027000
 

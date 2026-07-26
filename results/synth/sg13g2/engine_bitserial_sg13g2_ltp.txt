@@ -2,4 +2,4 @@
 
 Longest topological path in engine_bitserial (length=0):
 
-(path listing of 5 lines omitted; the full report is in build/synth/)
+(path listing of 4 lines omitted; the full report is in build/synth/)
