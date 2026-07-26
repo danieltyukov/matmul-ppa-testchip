@@ -128,20 +128,36 @@ def metrics() -> dict:
     return json.loads(path.read_text()).get("candidates", {})
 
 
-def render_single(top: str, px_per_um: float) -> dict:
-    """One candidate: whole die, and a zoom crop from the middle of the core."""
+def render_single(top: str, px_per_um: float, reuse: bool = True) -> dict:
+    """One candidate: whole die, and a zoom crop from the middle of the core.
+
+    Rendering a 70 MB GDS three times takes a couple of minutes, so the results are
+    cached against the GDS's own timestamp. Recomposing the sheets after a caption
+    change then costs seconds rather than ten minutes.
+    """
     gds = gds_for(top)
+    die = BUILD / f"{top}_die.png"
+    zoom = BUILD / f"{top}_zoom.png"
+    cache = BUILD / f"{top}_span.json"
+
+    fresh = (reuse and cache.exists() and die.exists() and zoom.exists()
+             and cache.stat().st_mtime >= gds.stat().st_mtime)
+    if fresh:
+        span_x, span_y = json.loads(cache.read_text())
+        print(f"  {top}: {span_x:.0f} x {span_y:.0f} um die (cached render)")
+        return {"top": top, "die": die, "zoom": zoom,
+                "span_x": span_x, "span_y": span_y}
+
     x0, y0, x1, y1 = klayout(gds, IMG / f"layout_{top}.png", 2000, 2000)
     span_x, span_y = x1 - x0, y1 - y0
 
-    die = BUILD / f"{top}_die.png"
     klayout(gds, die, max(int(span_x * px_per_um), 8), max(int(span_y * px_per_um), 8))
 
     cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
     half = ZOOM_UM / 2.0
-    zoom = BUILD / f"{top}_zoom.png"
     klayout(gds, zoom, 1100, 1100,
             box=(cx - half, cy - half, cx + half, cy + half))
+    cache.write_text(json.dumps([span_x, span_y]))
     print(f"  {top}: {span_x:.0f} x {span_y:.0f} um die")
     return {"top": top, "die": die, "zoom": zoom,
             "span_x": span_x, "span_y": span_y}
@@ -210,8 +226,11 @@ def contact_sheet(cards: list[dict], out: pathlib.Path, kind: str,
     else:
         caption = (
             f"The same {ZOOM_UM:.0f} micrometre square of silicon in each candidate, at "
-            f"the same magnification, taken from the middle of the core.\nSame function, "
-            f"same flow, same constraint: what differs is the microarchitecture."
+            f"the same magnification, from the middle of the core. At this zoom they "
+            f"look alike, and that is\nthe finding: the same library, the same cell "
+            f"rows, the same router. The microarchitecture shows up in how much of this "
+            f"a candidate needs,\nwhich is the die sheet above, not in what a square of "
+            f"it looks like."
         )
     fig.text(0.012, 0.10 / fig_h, caption, fontsize=9.5, color="#5a6672", va="bottom")
     fig.savefig(out, dpi=150, facecolor="white")
@@ -223,6 +242,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--tops", nargs="+", default=ORDER)
     parser.add_argument("--px-per-um", type=float, default=2.2)
+    parser.add_argument("--force", action="store_true",
+                        help="re-render even when the cached images are current")
     args = parser.parse_args(argv)
 
     if shutil.which("klayout") is None:
@@ -243,7 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"render_gds: no GDS for {', '.join(missing)}, skipping those")
 
     info = metrics()
-    cards = [render_single(top, args.px_per_um) for top in tops]
+    cards = [render_single(top, args.px_per_um, reuse=not args.force) for top in tops]
     contact_sheet(cards, IMG / "layout_contact_sheet.png", "die", info)
     contact_sheet(cards, IMG / "layout_zoom_contact_sheet.png", "zoom", info)
     return 0
