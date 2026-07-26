@@ -37,8 +37,26 @@ Run, and committed:
   LVS against the netlist, and antenna, slew and capacitance checks. Metrics in
   `results/pnr/`, renders in `docs/img/layout_*.png`.
 
+- **Real SG13G2 area for `engine_array`**, the five candidates in full-chip context with
+  their clock gates and operand isolation: 2,233,332 um2 against 1,665,153 um2 for the
+  five candidates standalone, so the logic that makes the measurement valid costs 34
+  percent on top of the arithmetic. That is the integration cost, and it is charged to
+  shared logic rather than to any candidate.
+
+- **Determinism of the place and route flow**, checked rather than assumed.
+  `engine_bitserial` was routed a second time from the identical committed configuration
+  under a separate run tag, on a machine running three other flows concurrently. All 191
+  keys in `final/metrics.json` matched, including worst slack at every corner, area,
+  wirelength, power, and the DRC, LVS and antenna counts. Differences between candidates
+  in `results/pnr/` are therefore differences between designs.
+
 Not run:
 
+- **`engine_array` through place and route.** It has a LibreLane configuration in
+  `flow/librelane/engine_array/` and a real synthesis area, but no routed result. At
+  215,987 cells it is several times the flow time of a single candidate. Its integration
+  cost is therefore a synthesis number, not a routed one, and there is no die area or
+  routed frequency for it.
 - **The chip-level flow.** `flow/openroad/floorplan.tcl` and its siblings place and route
   `gemm_bench_chip` with a pad ring and SRAM macros. That sequence has never completed:
   the candidates are what has been routed, and every routed number in this repository is
@@ -198,6 +216,13 @@ One detail makes that arithmetic exact rather than approximate.
 `constraints/block.sdc` sets the IO budget to a fixed 1 ns instead of a fraction of the
 clock period. With a proportional budget the slack moves for two reasons when the period
 moves, and `1/(period - slack)` is then wrong.
+
+That is not a hypothetical. An early trial of `engine_bitserial` ran with an SDC whose
+budget was `period * 0.2`, so 4 ns at a 20 ns period, and reported 67.1 MHz where the
+committed constraint reports 77.3. The design lost 3 ns of external budget it did not need
+to lose, and the reported figure was computed with the wrong arithmetic on top of that.
+The temptation is to write a 15 percent gap like that down as tool variance; the
+determinism check above rules that out, and the constraint accounts for it exactly.
 
 ---
 
